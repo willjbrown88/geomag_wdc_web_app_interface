@@ -59,7 +59,7 @@ Finding steps. There is a list of baseline step corrections. We _think_ they hav
 There is currently an R-interface to find and remove step corrections but it would be better not to need to do this.
 
 ## what wanted
-1. Per-observatory monthly means of `X, Y, Z` components.
+1. Per-observatory monthly means of `X, Y, Z` components. Discard all `I, F` only keep `H` to get `
 2. Monthly 1st differences.
 3. Initially, monthly means in folder structure like * above
 4. List of observatories in _geocentric_ lat, lon, radius (prefereably in radians).
@@ -67,10 +67,14 @@ There is currently an R-interface to find and remove step corrections but it wou
 ## Actions
 - **Will** will find out how and when the baseline correction is done
 - **Will** What spheroid are the lat lon etc. on INTERMAGNET and WDC websites with repect to. Prob geographic (WGS 84) and height MSL?
-- **Laurence** can we get location from WDC REST API?
-- **Laurence** monthly mean data from WDC via REST API into folder structure in * above 
+- **Will** Fork (or otherwise) [Grace's GitHub repo](https://github.com/gracecox/MagPy), make a `virtualenv` and run notebook. Wiht help from Grace and Laurence.
+- **Laurence** can we get location from WDC REST API (poss via [postman](http://www.getpostman.com/))?
+- **Laurence** monthly mean data from WDC via REST API into folder structure in * above. Not _yet_ implimenting heirachy of defin, qdefin,  
 - **Grace** nudge Richard re letter of support for EPCC refactor
 - **Grace** continue drafting paper
+
+### time frame for actions
+Work on this between 2017-01-27/02-01
 
 
 
