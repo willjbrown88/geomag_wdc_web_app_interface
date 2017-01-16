@@ -68,13 +68,16 @@ There is currently an R-interface to find and remove step corrections but it wou
 - **Will** will find out how and when the baseline correction is done
 - **Will** What spheroid are the lat lon etc. on INTERMAGNET and WDC websites with repect to. Prob geographic (WGS 84) and height MSL?
 - **Will** Fork (or otherwise) [Grace's GitHub repo](https://github.com/gracecox/MagPy), make a `virtualenv` and run notebook. Wiht help from Grace and Laurence.
+- **Will** answer some of the questions raised in the manuscript
 - **Laurence** can we get location from WDC REST API (poss via [postman](http://www.getpostman.com/))?
 - **Laurence** monthly mean data from WDC via REST API into folder structure in * above. Not _yet_ implimenting heirachy of defin, qdefin,  
 - **Grace** nudge Richard re letter of support for EPCC refactor
 - **Grace** continue drafting paper
 
 ### time frame for actions
-Work on this between 2017-01-27/02-01
+
+Laurence will have tiem to work on this
+ between 2017-01-27/02-01
 
 
 
