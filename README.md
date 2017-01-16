@@ -41,6 +41,7 @@ singleobservatory
 |
 ...
 ```
+see [Grace's GitHub repo](https://github.com/gracecox/MagPy/tree/master/magpy/data/BGS_hourly/hourval/single_obs)
 
 read into big `DdataFrame` hourly means per observatory from ~1960-present
 using `glob`. [Gillet et al., 2015 COV-OBS model](http://www.spacecenter.dk/files/magnetic-models/COV-OBSx1/COV-OBS.x1.pdf) used to subtract the core field.
@@ -68,6 +69,9 @@ There is currently an R-interface to find and remove step corrections but it wou
 - **Will** What spheroid are the lat lon etc. on INTERMAGNET and WDC websites with repect to. Prob geographic (WGS 84) and height MSL?
 - **Laurence** can we get location from WDC REST API?
 - **Laurence** monthly mean data from WDC via REST API into folder structure in * above 
-- **Grace** nudge Richard re letter of support
+- **Grace** nudge Richard re letter of support for EPCC refactor
+- **Grace** continue drafting paper
+
+
 
 
