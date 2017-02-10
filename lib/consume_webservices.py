@@ -15,7 +15,7 @@ class ConfigError(Exception):
     """Errors reading config files for consuming webservices"""
     pass
 
-def _check_service(config, service='WDC'):
+def _check_service(config, service):
     """
     ensure we have a section  about `service` in the
     configuration
@@ -29,7 +29,7 @@ def _check_service(config, service='WDC'):
         raise ConfigError(mess.format(service, config.sections()))
 
 
-def headers(config, service='WDC'):
+def extract_headers(config, service='WDC'):
     """
     Get the request headers from the ConfigurationParser `config`.
     `service` is assumed to be a section in the `config`
@@ -54,7 +54,7 @@ def headers(config, service='WDC'):
     return heads
 
 
-def url_for_post(config, service='WDC'):
+def extract_url(config, service='WDC'):
     """
     Form the URL to send the request to
     by reading the ConfigurationParser `config`
@@ -78,6 +78,43 @@ def url_for_post(config, service='WDC'):
     return url
 
 
+def extract_output_file_format(config, service='WDC'):
+    """
+    The format for the output files as read fromthe config.
+    """
+    template_option = '_format_template'
+    outfile_option = 'FileFormat'
+    fmt_key = 'format'
+    _check_service(config, service)
+    try:
+        outfmt_template = config.get(service, template_option)
+    except NoOptionError:
+        mess = (
+            'cannot find required value {}\n' +
+            'in config for service:{}'
+        )
+        raise ConfigError(mess.format(template_option, service))
+    try:
+        outfiletype = config.get(service, outfile_option)
+    except NoOptionError:
+        mess = (
+            'cannot find FileTyp option value {}\n' +
+            'in config for service:{}'
+        )
+        raise ConfigError(mess.format(outfile_option, service))
+
+    return {fmt_key: outfmt_template.format(outfiletype)}
+
+
+
+
+def form_request_payload(station, year, month, config, service='WDC'):
+    """form the POST request payload"""
+    out_format = extract_output_file_format(config, service)
+    raise NotImplementedError
+
+
+
 kyFmt = 'format'
 kyData = 'datasets'
 cadence = 'minute'
@@ -92,8 +129,8 @@ payload_data = {'format': '', 'datasets': ''}
 
 config = ConfigParser()
 config.read(CONFIGPATH)
-HEADERS = headers(config, service='WDC')
-URL = url_for_post(config, service='WDC')
+HEADERS = extract_headers(config, service='WDC')
+URL = extract_url(config, service='WDC')
 
 dSets = csDtBasename + station.lower() + str(year) + str(month).zfill(2)
 if isinstance(dSets, str):
@@ -102,13 +139,17 @@ cslDSets = ','.join(dSet for dSet in list(dSets))
 
 payload_data[kyData] = cslDSets
 
+
 payload_data[kyFmt] = fmtIaga
+fmt_map = extract_output_file_format(config, service='WDC')
+payload_data = {**fmt_map, **{kyData: cslDSets}}
+
 reqiaga = rq.post(URL, data=payload_data, headers=HEADERS)
-with open('./esk_test_iaga2k2_{}.zip'.format(cadence), 'wb') as file_:
+with open('./{}_test_wdc_{}.zip'.format(station, cadence), 'wb') as file_:
     file_.write(reqiaga.content)
 
 
-payload_data[kyFmt] = fmtWdc
+payload_data[kyFmt] = fmtIaga
 reqwdc = rq.post(URL, data=payload_data, headers=HEADERS)
-with open('./esk_test_wdc_{}.zip'.format(cadence), 'wb') as file_:
+with open('./{}_test_iaga2k2_{}.zip'.format(station, cadence), 'wb') as file_:
     file_.write(reqwdc.content)
