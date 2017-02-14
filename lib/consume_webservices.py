@@ -16,6 +16,7 @@ class ConfigError(Exception):
     """Errors reading config files for consuming webservices"""
     pass
 
+
 def _check_service(config, service):
     """
     ensure we have a section  about `service` in the
