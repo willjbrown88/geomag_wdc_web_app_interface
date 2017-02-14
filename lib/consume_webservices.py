@@ -3,7 +3,8 @@ Consume the BGS-WDC and INTERMAGNET webservices.
 Lots of the server unteraction is controlled
 by the `.ini` configuration file.
 """
-from configparser import ConfigParser, NoOptionError, NoSectionError
+from configparser import ConfigParser, NoOptionError
+from datetime import date, timedelta
 from os import path as pth
 
 import requests as rq
@@ -78,7 +79,7 @@ def extract_url(config, service='WDC'):
     return url
 
 
-def extract_output_file_format(config, service='WDC'):
+def format_form_data(config, service='WDC'):
     """
     The format for the output files as read fromthe config.
     """
@@ -106,11 +107,66 @@ def extract_output_file_format(config, service='WDC'):
     return {fmt_key: outfmt_template.format(outfiletype)}
 
 
+def datasets_form_data(start_date, end_date, station, cadence, service='WDC'):
+    """
+    List of datasets for the POST request form data.
+
+    The total span of data will be adjusted based on `cadence`
+    so that both `start_date` and `end_date` are included.
+    Total data span downloaded is likely to be
+    longer than `end_date - start_date`
+
+    Parameters
+    ----------
+    start_date:  datetime.date
+        earliest date at which data wanted.
+    end_date:  datetime.datetime
+        latest date at which data wanted.
+    station: string
+        IAGA-style station code e.g. 'ESK', 'NGK'
+    cadence: string
+        frequency of the data. 'minute' or 'hour',
+        changes the total data span
+    service: string
+        webservice to target, either 'WDC' or
+        'INTERMAGNET'
+    Returns
+    -------
+    datasets for the POST request form in a a comma-seperated
+        string.
+
+    Raises
+    ------
+    ValueError if `cadence` is not either 'minute' or 'hour'
+    """
+    root = '/'.join(['', service.lower(), 'datasets', cadence, ''])
+    if cadence == 'hour':
+        base = root + station.lower() + '{:d}'
+        years = range(start_date.year, end_date.year + 1)
+        dsets = (base.format(year) for year in years)
+    elif cadence == 'minute':
+        base = root + station.lower() + '{:d}{:02d}'
+        # note the creation of per-diem date stamps followed by a
+        # set comprehension over their strings appears wasetful because it
+        # creates ~30X more date objects than we strictly need.
+        #  but doing the maths correctly ourselves
+        #  including edge and corner cases is
+        #  messy, complex, and easy to screw up
+        num_days = (end_date - start_date).days
+        all_days = (start_date + timedelta(day) for day in range(num_days))
+        dsets = {base.format(dt.year, dt.month) for dt in all_days}
+    else:
+        cadences_supported = ['minute', 'hour']
+        mess = 'cadence {} cannot be handled.\nShould be one of: {}'
+        raise ValueError(mess.format(cadence, cadences_supported))
+    return ','.join(dset for dset in dsets)
 
 
-def form_request_payload(station, year, month, config, service='WDC'):
-    """form the POST request payload"""
-    out_format = extract_output_file_format(config, service)
+
+
+def form_data(station, begin, end, config, service='WDC'):
+    """construct the POST request payload"""
+    out_format = format_form_data(config, service)
     raise NotImplementedError
 
 
@@ -118,38 +174,28 @@ def form_request_payload(station, year, month, config, service='WDC'):
 kyFmt = 'format'
 kyData = 'datasets'
 cadence = 'minute'
-csDtBasename = '/wdc/datasets/{}/'.format(cadence)
 fmtIaga = 'text/x-iaga2002'
-fmtWdc = 'text/x-wdc'
 station = 'ESK'
-year = 2015
-month = 4
-
-payload_data = {'format': '', 'datasets': ''}
+start_date = date(2015, 4, 1)
+end_date = date(2015, 4, 30)
 
 config = ConfigParser()
 config.read(CONFIGPATH)
 HEADERS = extract_headers(config, service='WDC')
 URL = extract_url(config, service='WDC')
 
-dSets = csDtBasename + station.lower() + str(year) + str(month).zfill(2)
-if isinstance(dSets, str):
-    dSets = [dSets]
-cslDSets = ','.join(dSet for dSet in list(dSets))
-
-payload_data[kyData] = cslDSets
+cslDSets = datasets_form_data(start_date, end_date, station, cadence, 'WDC')
 
 
-payload_data[kyFmt] = fmtIaga
-fmt_map = extract_output_file_format(config, service='WDC')
+fmt_map = format_form_data(config, service='WDC')
 payload_data = {**fmt_map, **{kyData: cslDSets}}
 
-reqiaga = rq.post(URL, data=payload_data, headers=HEADERS)
+resp_wdc = rq.post(URL, data=payload_data, headers=HEADERS)
 with open('./{}_test_wdc_{}.zip'.format(station, cadence), 'wb') as file_:
-    file_.write(reqiaga.content)
+    file_.write(resp_wdc.content)
 
 
 payload_data[kyFmt] = fmtIaga
-reqwdc = rq.post(URL, data=payload_data, headers=HEADERS)
+resp_iaga = rq.post(URL, data=payload_data, headers=HEADERS)
 with open('./{}_test_iaga2k2_{}.zip'.format(station, cadence), 'wb') as file_:
-    file_.write(reqwdc.content)
+    file_.write(resp_iaga.content)
