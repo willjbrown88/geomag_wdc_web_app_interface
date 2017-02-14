@@ -10,3 +10,6 @@
 
 # pytest cache
 .cache
+
+# editor cruft
+.ropeproject
