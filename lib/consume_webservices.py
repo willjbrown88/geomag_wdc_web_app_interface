@@ -79,7 +79,7 @@ def extract_url(config, service='WDC'):
     return url
 
 
-def format_form_data(config, service='WDC'):
+def format_form_data(config, service='WDC', ret_dict=True):
     """
     The format for the output files as read fromthe config.
     """
@@ -103,8 +103,10 @@ def format_form_data(config, service='WDC'):
             'in config for service:{}'
         )
         raise ConfigError(mess.format(outfile_option, service))
-
-    return {fmt_key: outfmt_template.format(outfiletype)}
+    if ret_dict:
+        return {fmt_key: outfmt_template.format(outfiletype)}
+    else:
+        return outfmt_template.format(outfiletype)
 
 
 def datasets_form_data(start_date, end_date, station, cadence, service='WDC'):
@@ -164,38 +166,39 @@ def datasets_form_data(start_date, end_date, station, cadence, service='WDC'):
 
 
 
-def form_data(station, begin, end, config, service='WDC'):
+def form_data(start_date, end_date, station, cadence, config, service='WDC'):
     """construct the POST request payload"""
-    out_format = format_form_data(config, service)
-    raise NotImplementedError
+    format_key = 'format'
+    data_key = 'datasets'
+    data_format = format_form_data(config, service, ret_dict=False)
+    datasets = datasets_form_data(start_date, end_date, station, cadence, service='WDC')
+    return {format_key: data_format, data_key: datasets}
 
 
 
-kyFmt = 'format'
-kyData = 'datasets'
-cadence = 'minute'
-fmtIaga = 'text/x-iaga2002'
-station = 'ESK'
-start_date = date(2015, 4, 1)
-end_date = date(2015, 4, 30)
+def rubbish_funtional_test():
+    cadence = 'minute'
+    station = 'ESK'
+    start_date = date(2015, 4, 1)
+    end_date = date(2015, 4, 30)
 
-config = ConfigParser()
-config.read(CONFIGPATH)
-HEADERS = extract_headers(config, service='WDC')
-URL = extract_url(config, service='WDC')
+    config = ConfigParser()
+    config.read(CONFIGPATH)
+    headers = extract_headers(config, service='WDC')
+    url = extract_url(config, service='WDC')
 
-cslDSets = datasets_form_data(start_date, end_date, station, cadence, 'WDC')
+    payload_data = form_data(start_date, end_date, station, cadence, config, 'WDC')
 
-
-fmt_map = format_form_data(config, service='WDC')
-payload_data = {**fmt_map, **{kyData: cslDSets}}
-
-resp_wdc = rq.post(URL, data=payload_data, headers=HEADERS)
-with open('./{}_test_wdc_{}.zip'.format(station, cadence), 'wb') as file_:
-    file_.write(resp_wdc.content)
+    resp_wdc = rq.post(url, data=payload_data, headers=headers)
+    with open('./{}_test_wdc_{}.zip'.format(station, cadence), 'wb') as file_:
+        file_.write(resp_wdc.content)
 
 
-payload_data[kyFmt] = fmtIaga
-resp_iaga = rq.post(URL, data=payload_data, headers=HEADERS)
-with open('./{}_test_iaga2k2_{}.zip'.format(station, cadence), 'wb') as file_:
-    file_.write(resp_iaga.content)
+    payload_data['format'] = 'text/x-iaga2002'
+    resp_iaga = rq.post(url, data=payload_data, headers=headers)
+    with open('./{}_test_iaga2k2_{}.zip'.format(station, cadence), 'wb') as file_:
+        file_.write(resp_iaga.content)
+
+
+if __name__ == '__main__':
+    rubbish_funtional_test()
