@@ -17,7 +17,7 @@ class ConfigError(Exception):
     pass
 
 
-class RequestConfigurator(object):
+class RequestConfigParser(object):
     """
     Holds the configuration for making requests to
     the WDC and INTERMAGNET webservices
@@ -27,6 +27,7 @@ class RequestConfigurator(object):
         self._check_service(target_service)
         self.service = target_service
         self.headers = self.extract_headers()
+        self.url = self.extract_url()
 
     def extract_headers(self):
         """
@@ -51,6 +52,28 @@ class RequestConfigurator(object):
             raise ConfigError(mess.format(head_keys, self.service))
         return heads
 
+    def extract_url(self):
+        """
+        Form the URL to send the request to
+        by reading the ConfigurationParser `config`
+
+        Returns
+        -------
+        url for request as a `str`
+        """
+        url_keys = ['Hostname', 'Route']
+        try:
+            url = '/'.join(self.config.get(self.service, k) for k in url_keys)
+        except NoOptionError as err:
+            mess = (
+                'cannot load request url from config\n' +
+                'require values for {0}\n' +
+                'under section for service `[{1}]`\n' +
+                str(err)
+            )
+            raise ConfigError(mess.format(url_keys, self.service))
+        return url
+
     def _check_service(self, service):
         """
         ensure we have a section  about `service` in the
@@ -65,7 +88,9 @@ class RequestConfigurator(object):
             raise ConfigError(mess.format(service, config.sections()))
 
 
-
+# ##############################################################################
+# old non-oo implimentation
+# ##############################################################################
 def _check_service(config, service):
     """
     ensure we have a section  about `service` in the
@@ -149,7 +174,7 @@ def format_form_data(config, service='WDC'):
         outfiletype = config.get(service, outfile_option)
     except NoOptionError:
         mess = (
-            'cannot find FileTyp option value {}\n' +
+            'cannot find FileType option value {}\n' +
             'in config for service:{}'
         )
         raise ConfigError(mess.format(outfile_option, service))
