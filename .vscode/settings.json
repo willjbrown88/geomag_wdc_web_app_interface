@@ -1,5 +1,10 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "python.pythonPath": "C:/Users/laurence/AppData/Local/Continuum/Anaconda/envs/http_services/python",
-    "python.autoComplete.extraPaths": ["c:/Users/laurence/AppData/Local/Continuum/Anaconda/envs/http_services/Lib/site-packages"]
+    "python.autoComplete.extraPaths": [
+        "c:/Users/laurence/AppData/Local/Continuum/Anaconda/envs/http_services/Lib/site-packages"
+    ],
+    "python.linting.pep8Enabled": true,
+    "python.linting.pylintPath": "c:/Users/laurence/AppData/Local/Continuum/Anaconda/Scripts/pylint",
+    "python.linting.pylintArgs": ["--rcfile .pylintrc"]
 }
