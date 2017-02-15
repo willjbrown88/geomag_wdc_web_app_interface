@@ -80,7 +80,7 @@ def extract_url(config, service='WDC'):
     return url
 
 
-def format_form_data(config, service='WDC', ret_dict=True):
+def format_form_data(config, service='WDC'):
     """
     The format for the output files as read fromthe config.
     """
@@ -104,10 +104,7 @@ def format_form_data(config, service='WDC', ret_dict=True):
             'in config for service:{}'
         )
         raise ConfigError(mess.format(outfile_option, service))
-    if ret_dict:
-        return {fmt_key: outfmt_template.format(outfiletype)}
-    else:
-        return outfmt_template.format(outfiletype)
+    return outfmt_template.format(outfiletype)
 
 
 def datasets_form_data(start_date, end_date, station, cadence, service='WDC'):
@@ -155,7 +152,9 @@ def datasets_form_data(start_date, end_date, station, cadence, service='WDC'):
         #  but doing the maths correctly ourselves
         #  including edge and corner cases is
         #  messy, complex, and easy to screw up
-        num_days = (end_date - start_date).days
+
+        # +1 so we _include_ the end date in range
+        num_days = (end_date - start_date).days + 1
         all_days = (start_date + timedelta(day) for day in range(num_days))
         dsets = {base.format(dt.year, dt.month) for dt in all_days}
     else:
@@ -165,16 +164,13 @@ def datasets_form_data(start_date, end_date, station, cadence, service='WDC'):
     return ','.join(dset for dset in dsets)
 
 
-
-
 def form_data(start_date, end_date, station, cadence, config, service='WDC'):
     """construct the POST request payload"""
     format_key = 'format'
     data_key = 'datasets'
-    data_format = format_form_data(config, service, ret_dict=False)
+    data_format = format_form_data(config, service)
     datasets = datasets_form_data(start_date, end_date, station, cadence, service='WDC')
     return {format_key: data_format, data_key: datasets}
-
 
 
 def rubbish_funtional_test():
