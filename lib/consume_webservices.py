@@ -17,6 +17,55 @@ class ConfigError(Exception):
     pass
 
 
+class RequestConfigurator(object):
+    """
+    Holds the configuration for making requests to
+    the WDC and INTERMAGNET webservices
+    """
+    def __init__(self, config_file, target_service):
+        self.config = ConfigParser().read(config_file)
+        self._check_service(target_service)
+        self.service = target_service
+        self.headers = self.extract_headers()
+
+    def extract_headers(self):
+        """
+        Get the request headers from the ConfigurationParser `config`.
+        `service` is assumed to be a section in the `config`
+
+        Returns
+        -------
+        `dict` of headers for the request
+        """
+        head_keys = ['Accept', 'Accept-Encoding', 'Content-Type']
+
+        try:
+            heads = {k: self.config.get(self.service, k) for k in head_keys}
+        except NoOptionError as err:
+            mess = (
+                'cannot load request headers from config\n' +
+                'require values for {0}\n' +
+                'under section for service `[{1}]`\n' +
+                str(err)
+            )
+            raise ConfigError(mess.format(head_keys, self.service))
+        return heads
+
+    def _check_service(self, service):
+        """
+        ensure we have a section  about `service` in the
+        configuration
+        """
+        if service not in self.config.sections():
+            mess = (
+                'cannot find service:{0} in configuration\n' +
+                'should look like (like `[{0}]`)\n' +
+                'found sections for {1}\n'
+            )
+            raise ConfigError(mess.format(service, config.sections()))
+
+
+
 def _check_service(config, service):
     """
     ensure we have a section  about `service` in the
