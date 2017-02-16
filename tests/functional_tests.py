@@ -9,6 +9,7 @@ import glob
 import os
 import zipfile
 
+import pytest
 import requests as rq
 from six import BytesIO
 
@@ -19,6 +20,7 @@ DATAPATH = os.path.join(
     'test_data'
 )
 ORACLEPATH = os.path.join(DATAPATH, 'known_good')
+
 
 def test_getting_wdc_format_hour_data_from_wdc(tmpdir):
     """
@@ -31,19 +33,28 @@ def test_getting_wdc_format_hour_data_from_wdc(tmpdir):
     station = 'NGK'
     start_date = date(2015, 4, 1)
     end_date = date(2015, 4, 30)
+    service = 'WDC'
     configpath = os.path.join(DATAPATH, 'wdc_minute_data_wdcoutput.ini')
     oraclefile = os.path.join(ORACLEPATH, 'ngk2015.wdc')
 
     tmppath = str(tmpdir)
 
-    config = ConfigParser()
-    config.read(configpath)
-    headers = cws.extract_headers(config, service='WDC')
-    url = cws.extract_url(config, service='WDC')
-    payload_data = cws.form_data(start_date, end_date, station,
-                                 cadence, config, 'WDC')
+    config = cws.RequestConfigParser(configpath, service)
+    form_data = cws.FormData(config)
+    with pytest.raises(ValueError):
+        form_data.as_dict()
+    form_data.set_datasets(start_date, end_date, station, cadence, service)
+    req_wdc = cws.DataRequest()
+    req_wdc.read_attributes(config)
+    assert req_wdc.can_send is False
+    assert req_wdc.form_data == {}
+    req_wdc.set_form_data(form_data.as_dict())
+    assert req_wdc.can_send is True
 
-    resp_wdc = rq.post(url, data=payload_data, headers=headers)
+    resp_wdc = rq.post(
+        req_wdc.url, data=req_wdc.form_data, headers=req_wdc.headers
+    )
+
     with zipfile.ZipFile(BytesIO(resp_wdc.content)) as fzip:
         fzip.extractall(tmppath)
     gotfile = os.path.join(tmppath, os.path.basename(oraclefile))
@@ -61,6 +72,7 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):
     """
     cadence = 'minute'
     station = 'ESK'
+    service = 'WDC'
     year = 2015
     start_date = date(year, 1, 15)
     end_date = date(year, 12, 1)
@@ -71,20 +83,28 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):
     oraclefiles = [os.path.basename(file_) for file_ in glob.glob(
         os.path.join(ORACLEPATH, file_pattern))]
 
-    config = ConfigParser()
-    config.read(configpath)
-    headers = cws.extract_headers(config, service='WDC')
-    url = cws.extract_url(config, service='WDC')
-    payload_data = cws.form_data(start_date, end_date, station, cadence,
-                                 config, 'WDC')
+    config = cws.RequestConfigParser(configpath, service)
+    form_data = cws.FormData(config)
+    with pytest.raises(ValueError):
+        form_data.as_dict()
+    form_data.set_datasets(start_date, end_date, station, cadence, service)
+    req_iaga = cws.DataRequest()
+    req_iaga.read_attributes(config)
+    assert req_iaga.can_send is False
+    assert req_iaga.form_data == {}
+    req_iaga.set_form_data(form_data.as_dict())
+    assert req_iaga.can_send is True
 
-    resp_iaga = rq.post(url, data=payload_data, headers=headers)
+    resp_iaga = rq.post(
+        req_iaga.url, data=req_iaga.form_data, headers=req_iaga.headers
+    )
     with zipfile.ZipFile(BytesIO(resp_iaga.content)) as fzip:
         fzip.extractall(tmppath)
     sames, diffs, errs = filecmp.cmpfiles(tmppath, ORACLEPATH,
                                           oraclefiles, shallow=False)
     assert diffs == [], (
-        'files {} downloaded but contents differ from known-good '.format(diffs)
+        'files {} downloaded '.format(diffs) +
+        'but contents differ from known-good'
     )
     assert errs == [], (
         "could not compare {} to expected, ".format(errs) +
