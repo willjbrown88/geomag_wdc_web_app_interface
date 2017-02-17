@@ -146,9 +146,16 @@ class FormData(object):
         return '{}:\n    {}'.format(self.__class__.__name__, self._dict)
 
     def __repr__(self):
-        return '{}({})'.format(
-            self.__class__.__name__, repr(self._from_req_parser)
-        )
+        args_part = '({})'.format(self._from_req_parser)
+        return self.__class__.__name__ + args_part
+
+    def __eq__(self, other):
+        same_format = self.format == other.format
+        same_datasets = self.datasets == other.datasets
+        return same_datasets and same_format
+
+    def __ne__(self, other):
+        return not self == other
 
     @property
     def _dict(self):
@@ -213,11 +220,11 @@ class FormData(object):
         elif cadence == 'minute':
             base = root + station.lower() + '{:d}{:02d}'
             # note the creation of per-diem date stamps followed by a
-            # set comprehension over their strings appears wasetful because it
-            # creates ~30X more date objects than we strictly need.
-            #  but doing the maths correctly ourselves
-            #  including edge and corner cases is
-            #  messy, complex, and easy to screw up
+            #   set comprehension over their strings appears wasetful because
+            #   it creates ~30X more date objects than we strictly need.
+            #   but doing the maths correctly ourselves
+            #   including edge and corner cases is
+            #   messy, complex, and easy to screw up
 
             # +1 so we _include_ the end date in range
             num_days = (end_date - start_date).days + 1
@@ -395,4 +402,4 @@ def rubbish_funtional_test():
 
 
 if __name__ == '__main__':
-    rubbish_funtional_test()
+    pass  # rubbish_funtional_test()
