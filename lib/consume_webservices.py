@@ -9,6 +9,8 @@ from os import path as pth
 
 import requests as rq
 
+from lib.sandboxed_format import safe_format
+
 
 class ConfigError(Exception):
     """Errors reading config files for consuming webservices"""
@@ -143,10 +145,11 @@ class FormData(object):
 
     def __str__(self):
         """pretty (ish) printing)"""
-        return '{}:\n    {}'.format(self.__class__.__name__, self._dict)
+        foo = safe_format('{}:\n    {}', self.__class__.__name__, self._dict)
+        return foo
 
     def __repr__(self):
-        args_part = '({})'.format(self._from_req_parser)
+        args_part = safe_format('({})', self._from_req_parser)
         return self.__class__.__name__ + args_part
 
     def __eq__(self, other):
@@ -216,7 +219,7 @@ class FormData(object):
         if cadence == 'hour':
             base = root + station.lower() + '{:d}'
             years = range(start_date.year, end_date.year + 1)
-            dsets = (base.format(year) for year in years)
+            dsets = (safe_format(base, year) for year in years)
         elif cadence == 'minute':
             base = root + station.lower() + '{:d}{:02d}'
             # note the creation of per-diem date stamps followed by a
@@ -229,10 +232,10 @@ class FormData(object):
             # +1 so we _include_ the end date in range
             num_days = (end_date - start_date).days + 1
             all_days = (start_date + timedelta(day) for day in range(num_days))
-            dsets = {base.format(dt.year, dt.month) for dt in all_days}
+            dsets = {safe_format(base, dt.year, dt.month) for dt in all_days}
         else:
             mess = 'cadence {} cannot be handled.\nShould be one of: {}'
-            raise ValueError(mess.format(cadence, cadences_supported))
+            raise ValueError(safe_format(mess, cadence, cadences_supported))
         self.datasets = ','.join(dset for dset in dsets)
 
 
@@ -261,9 +264,13 @@ class RequestConfigParser(object):
         self.service = target_service
 
     def __repr__(self):
-        return '{}({}, {})'.format(
-            self.__class__.__name__, repr(self.filename), repr(self.service)
+        mess = safe_format(
+            '{}({}, {})',
+            self.__class__.__name__,
+            repr(self.filename),
+            repr(self.service)
         )
+        return mess
 
     def extract_headers(self):
         """
@@ -280,7 +287,9 @@ class RequestConfigParser(object):
         are not options within the config file
         """
         try:
-            heads = {k: self.config.get(self.service, k) for k in self.headers_need}
+            heads = {
+                k: self.config.get(self.service, k) for k in self.headers_need
+            }
         except NoOptionError as err:
             mess = (
                 'cannot load request headers from config\n' +
@@ -289,11 +298,13 @@ class RequestConfigParser(object):
                 'found only {2}\n' +
                 str(err)
             )
-            raise ConfigError(mess.format(
+            formatted_mess = safe_format(
+                mess,
                 self.headers_need,
                 self.service,
                 list(self.config[self.service].keys())
-            ))
+            )
+            raise ConfigError(formatted_mess)
         return heads
 
     def extract_url(self):
@@ -322,11 +333,13 @@ class RequestConfigParser(object):
                 'found only {2}\n' +
                 str(err)
             )
-            raise ConfigError(mess.format(
+            formatted = safe_format(
+                mess,
                 self.urlbits_need,
                 self.service,
                 list(self.config[self.service].keys())
-             ))
+                )
+            raise ConfigError(formatted)
         return url
 
     def form_data__format(self):
@@ -354,7 +367,8 @@ class RequestConfigParser(object):
                 'cannot find required value {}\n' +
                 'in config for service:{}'
             )
-            raise ConfigError(mess.format(template_option, self.service))
+            formatted_mess = safe_format(mess, template_option, self.service)
+            raise ConfigError(formatted_mess)
         try:
             outfiletype = self.config.get(self.service, outfile_option)
         except NoOptionError:
@@ -362,8 +376,10 @@ class RequestConfigParser(object):
                 'cannot find FileType option value {}\n' +
                 'in config for service:{}'
             )
-            raise ConfigError(mess.format(outfile_option, self.service))
-        return outfmt_template.format(outfiletype)
+            formatted_mess = safe_format(mess, outfile_option, self.service)
+            raise ConfigError(formatted_mess)
+        final_format = safe_format(outfmt_template, outfiletype)
+        return final_format
 
     def _check_service(self, service):
         """
@@ -382,7 +398,8 @@ class RequestConfigParser(object):
                 'should look like (like `[{0}]`)\n' +
                 'found sections for {1}\n'
             )
-            raise ConfigError(mess.format(service, self.config.sections()))
+            formatted_mess = safe_format(mess, service, self.config.sections())
+            raise ConfigError(formatted_mess)
 
 
 def rubbish_funtional_test():
