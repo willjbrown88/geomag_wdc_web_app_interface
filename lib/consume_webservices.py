@@ -254,7 +254,7 @@ class RequestConfigParser(object):
             Which we bervice are we targeting? Currently only
             'WDC'
         """
-        self._from_file = config_file
+        self.filename = config_file
         self.config = ConfigParser()
         self.config.read(config_file)
         self._check_service(target_service)
@@ -262,7 +262,7 @@ class RequestConfigParser(object):
 
     def __repr__(self):
         return '{}({}, {})'.format(
-            self.__class__.__name__, repr(self._from_file), repr(self.service)
+            self.__class__.__name__, repr(self.filename), repr(self.service)
         )
 
     def extract_headers(self):
@@ -286,9 +286,14 @@ class RequestConfigParser(object):
                 'cannot load request headers from config\n' +
                 'require values for {0}\n' +
                 'under section for service `[{1}]`\n' +
+                'found only {2}\n' +
                 str(err)
             )
-            raise ConfigError(mess.format(self.headers_need, self.service))
+            raise ConfigError(mess.format(
+                self.headers_need,
+                self.service,
+                list(self.config[self.service].keys())
+            ))
         return heads
 
     def extract_url(self):
@@ -314,10 +319,14 @@ class RequestConfigParser(object):
                 'cannot load request url from config\n' +
                 'require values for {0}\n' +
                 'under section for service `[{1}]`\n' +
+                'found only {2}\n' +
                 str(err)
             )
             raise ConfigError(mess.format(
-                self.urlbits_need, self.service))
+                self.urlbits_need,
+                self.service,
+                list(self.config[self.service].keys())
+             ))
         return url
 
     def form_data__format(self):
