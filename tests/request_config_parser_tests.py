@@ -1,5 +1,8 @@
 import configparser
+from datetime import date
+
 import pytest
+
 from lib.consume_webservices import RequestConfigParser, ConfigError
 
 THE_SERVICE = 'ABC'
@@ -21,7 +24,7 @@ class MockCfgParser(object):
     }
     for_form_bits = {
         'FileFormat': 'beep',
-        '_format_template': 'boop'
+        '_format_template': '{}-boop'
     }
     def __init__(self):
         self.data = {**self.header_bits,
@@ -122,19 +125,42 @@ def test_extract_url_sad_path(monkeypatch):
         assert str_ in err_mess
 
 
-@pytest.mark.xfail
-def test_form_data__format_happy_path():
-    assert False, 'code me'
+def test_form_data__format_happy_path(monkeypatch):
+    monkeypatch.setattr('lib.consume_webservices.ConfigParser', MockCfgParser)
+    parser = RequestConfigParser('whatever', THE_SERVICE)
+    got_fmt = parser.form_data__format()
+    expected_fmt = 'beep-boop'
+    assert got_fmt == expected_fmt
 
 
-@pytest.mark.xfail
-def test_form_data__format_sad_no_file_format():
-    assert False, 'code me'
+def test_form_data__format_sad_no_format_template(monkeypatch):
+    class BadCfgParser(MockCfgParser):
+        for_form_bits = {
+            'FileFormat': 'beep',
+            'no_format_template': 'here'
+         }
+    monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
+    parser = RequestConfigParser('whatever', THE_SERVICE)
+    with pytest.raises(ConfigError) as err:
+        parser.form_data__format()
+    err_mess = str(err.value)
+    for str_ in ['service', THE_SERVICE, 'find']:
+        assert str_ in err_mess
 
 
-@pytest.mark.xfail
-def test_form_data__format_sad_no_format_template():
-    assert False, 'code me'
+def test_form_data__format_sad_no_file_format(monkeypatch):
+    class BadCfgParser(MockCfgParser):
+        for_form_bits = {
+            'NoFileFormatHere': 'beep',
+            '_format_template': 'here'
+         }
+    monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
+    parser = RequestConfigParser('whatever', THE_SERVICE)
+    with pytest.raises(ConfigError) as err:
+        parser.form_data__format()
+    err_mess = str(err.value)
+    for str_ in ['config', THE_SERVICE, 'find']:
+        assert str_ in err_mess
 
 
 @pytest.mark.xfail

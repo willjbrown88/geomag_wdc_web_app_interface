@@ -346,6 +346,12 @@ class RequestConfigParser(object):
         """
         The format for the output files as read from the config.
 
+        N.B.
+        The double_underscore (`__`) in the name is trying to indicate
+        that we are reading the 'format' part of the 'form_data'
+        from the config file.... inspired by
+        [django's usage](http://stackoverflow.com/questions/5481682)
+
         Returns
         -------
         dataformat: string:
@@ -365,7 +371,7 @@ class RequestConfigParser(object):
         except NoOptionError:
             mess = (
                 'cannot find required value {}\n' +
-                'in config for service:{}'
+                'in config for service: {}'
             )
             formatted_mess = safe_format(mess, template_option, self.service)
             raise ConfigError(formatted_mess)
@@ -373,8 +379,8 @@ class RequestConfigParser(object):
             outfiletype = self.config.get(self.service, outfile_option)
         except NoOptionError:
             mess = (
-                'cannot find FileType option value {}\n' +
-                'in config for service:{}'
+                'cannot find "FileType" option value {}\n' +
+                'in config for service: {}'
             )
             formatted_mess = safe_format(mess, outfile_option, self.service)
             raise ConfigError(formatted_mess)
