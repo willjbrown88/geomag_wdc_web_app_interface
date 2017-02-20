@@ -163,6 +163,21 @@ def test_form_data__format_sad_no_file_format(monkeypatch):
         assert str_ in err_mess
 
 
-@pytest.mark.xfail
-def test_reads_supplied_filename():
-    assert False, 'code me'
+def test_reads_supplied_filename(monkeypatch):
+    class SpyCfgParser(MockCfgParser):
+        read_call_count = 0
+        read_called_with = 'walrus'
+
+        @classmethod
+        def read(cls, arg):
+            cls.read_call_count += 1
+            cls.read_called_with = str(arg)
+
+    monkeypatch.setattr('lib.consume_webservices.ConfigParser', SpyCfgParser)
+
+    filename = 'a_unique_file.name'
+    assert SpyCfgParser.read_call_count == 0
+    assert SpyCfgParser.read_called_with == 'walrus'
+    parser = RequestConfigParser(filename, THE_SERVICE)
+    assert SpyCfgParser.read_call_count == 1
+    assert SpyCfgParser.read_called_with == filename

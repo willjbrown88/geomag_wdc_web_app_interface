@@ -371,7 +371,7 @@ class RequestConfigParser(object):
         except NoOptionError:
             mess = (
                 'cannot find required value {}\n' +
-                'in config for service: {}'
+                'in config for service:{}'
             )
             formatted_mess = safe_format(mess, template_option, self.service)
             raise ConfigError(formatted_mess)
@@ -380,7 +380,7 @@ class RequestConfigParser(object):
         except NoOptionError:
             mess = (
                 'cannot find "FileType" option value {}\n' +
-                'in config for service: {}'
+                'in config for service:{}'
             )
             formatted_mess = safe_format(mess, outfile_option, self.service)
             raise ConfigError(formatted_mess)
@@ -408,33 +408,5 @@ class RequestConfigParser(object):
             raise ConfigError(formatted_mess)
 
 
-def rubbish_funtional_test():
-    configpath = pth.join(pth.dirname(pth.abspath(__file__)),
-                          'consume_rest.ini')
-    cadence = 'minute'
-    station = 'ESK'
-    service = 'WDC'
-    start_date = date(2015, 4, 1)
-    end_date = date(2015, 4, 30)
-
-    config = RequestConfigParser(configpath, service)
-    req = DataRequest()
-    req.read_attributes(config)
-    form_data = FormData(config)
-    form_data.set_datasets(start_date, end_date, station, cadence, service)
-    req.set_form_data(form_data.as_dict())
-
-    resp = rq.post(req.url, data=req.form_data, headers=req.headers)
-    with open('./{}_test_wdc_{}.zip'.format(station, cadence), 'wb') as file_:
-        file_.write(resp.content)
-
-    payload_data = req.form_data
-    payload_data['format'] = 'text/x-iaga2002'
-    resp_iaga = rq.post(req.url, data=payload_data, headers=req.headers)
-    with open('./{}_test_iaga2k2_{}.zip'.format(station,
-                                                cadence), 'wb') as file_:
-        file_.write(resp_iaga.content)
-
-
 if __name__ == '__main__':
-    pass  # rubbish_funtional_test()
+    pass  # this is module is only for being imported
