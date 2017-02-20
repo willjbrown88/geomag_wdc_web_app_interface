@@ -45,11 +45,12 @@ def test_construction(monkeypatch):
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', MockCfgParser)
     got = RequestConfigParser('afile', THE_SERVICE)
     assert got.service == THE_SERVICE
-    # test failure raises sane error
+    # test failure to find service raises sane error
+    not_in_there_service = 'Wally the service'
     with pytest.raises(ConfigError) as err:
-        got = RequestConfigParser('afile', 'Wally the service')
+        got = RequestConfigParser('somefilepath', not_in_there_service)
     err_mess = str(err.value)
-    for str_ in ['Wally the service', THE_SERVICE]:
+    for str_ in [not_in_there_service, THE_SERVICE]:
         assert str_ in err_mess
 
 
@@ -93,15 +94,32 @@ def test_extract_headers_sad_path(monkeypatch):
         assert str_ in err_mess
 
 
+def test_extract_url_happy_path(monkeypatch):
+    monkeypatch.setattr('lib.consume_webservices.ConfigParser', MockCfgParser)
+    parser = RequestConfigParser('whatever', THE_SERVICE)
+    got_url = parser.extract_url()
+    expected_bits = MockCfgParser().url_bits
+    expected_url = '{}/{}'.format(expected_bits['Hostname'],
+                                  expected_bits['Route'])
+    assert expected_url in got_url
 
-@pytest.mark.xfail
-def test_extract_url_happy_path():
-    assert False, 'code me'
 
-
-@pytest.mark.xfail
-def test_extract_url_sad_path():
-    assert False, 'code me'
+def test_extract_url_sad_path(monkeypatch):
+    class BadCfgParser(MockCfgParser):
+        url_bits = {
+            'NOTHostname': 'foo',
+            'NOTRoute': 'bar',
+         }
+    monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
+    parser = RequestConfigParser('whatever', THE_SERVICE)
+    with pytest.raises(ConfigError) as err:
+        parser.extract_url()
+    err_mess = str(err.value)
+    for str_ in ['section',
+                 "'NOTRoute'", "'Route'",
+                 "'NOTHostname'", "'Hostname'",
+                 THE_SERVICE]:
+        assert str_ in err_mess
 
 
 @pytest.mark.xfail
