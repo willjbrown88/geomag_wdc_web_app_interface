@@ -241,6 +241,9 @@ class RequestConfigParser(object):
     Knows how to read the configuration file for making requests to
     the WDC and INTERMAGNET webservices
     """
+    headers_need = ['Accept', 'Accept-Encoding', 'Content-Type']
+    urlbits_need = ['Hostname', 'Route']
+
     def __init__(self, config_file, target_service):
         """
         Parameters
@@ -276,10 +279,8 @@ class RequestConfigParser(object):
         ConfigError if any of the required header values
         are not options within the config file
         """
-        head_keys = ['Accept', 'Accept-Encoding', 'Content-Type']
-
         try:
-            heads = {k: self.config.get(self.service, k) for k in head_keys}
+            heads = {k: self.config.get(self.service, k) for k in self.headers_need}
         except NoOptionError as err:
             mess = (
                 'cannot load request headers from config\n' +
@@ -287,7 +288,7 @@ class RequestConfigParser(object):
                 'under section for service `[{1}]`\n' +
                 str(err)
             )
-            raise ConfigError(mess.format(head_keys, self.service))
+            raise ConfigError(mess.format(self.headers_need, self.service))
         return heads
 
     def extract_url(self):
@@ -304,9 +305,10 @@ class RequestConfigParser(object):
         ConfigError if any of the required parts of the url are not options
         within the config file
         """
-        url_keys = ['Hostname', 'Route']
         try:
-            url = '/'.join(self.config.get(self.service, k) for k in url_keys)
+            url = '/'.join(
+                self.config.get(self.service, k) for k in self.urlbits_need
+             )
         except NoOptionError as err:
             mess = (
                 'cannot load request url from config\n' +
@@ -314,7 +316,8 @@ class RequestConfigParser(object):
                 'under section for service `[{1}]`\n' +
                 str(err)
             )
-            raise ConfigError(mess.format(url_keys, self.service))
+            raise ConfigError(mess.format(
+                self.urlbits_need, self.service))
         return url
 
     def form_data__format(self):
