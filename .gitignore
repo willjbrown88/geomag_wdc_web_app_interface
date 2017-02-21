@@ -8,8 +8,11 @@
 *.pyc
 *.egg-info
 
-# pytest cache
+# pytest and coverage
 .cache
+htmlcov
+.coverage
+
 
 # editor cruft
 .ropeproject

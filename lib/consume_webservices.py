@@ -1,6 +1,6 @@
 """
 Consume the BGS-WDC and INTERMAGNET webservices.
-Lots of the server unteraction is controlled
+Lots of the server interaction is controlled
 by the `.ini` configuration file.
 """
 from configparser import ConfigParser, NoOptionError
@@ -8,6 +8,8 @@ from datetime import date, timedelta
 from os import path as pth
 
 import requests as rq
+
+from lib.sandboxed_format import safe_format
 
 
 class ConfigError(Exception):
@@ -73,7 +75,7 @@ class DataRequest(object):
     @property
     def can_send(self):
         """
-        have we populated enough data thatt we can send a request?
+        have we populated enough data that we can send a request?
         """
         if self.headers and self.form_data and self.url:
             return True
@@ -143,12 +145,20 @@ class FormData(object):
 
     def __str__(self):
         """pretty (ish) printing)"""
-        return '{}:\n    {}'.format(self.__class__.__name__, self._dict)
+        foo = safe_format('{}:\n    {}', self.__class__.__name__, self._dict)
+        return foo
 
     def __repr__(self):
-        return '{}({})'.format(
-            self.__class__.__name__, repr(self._from_req_parser)
-        )
+        args_part = safe_format('({})', self._from_req_parser)
+        return self.__class__.__name__ + args_part
+
+    def __eq__(self, other):
+        same_format = self.format == other.format
+        same_datasets = self.datasets == other.datasets
+        return same_datasets and same_format
+
+    def __ne__(self, other):
+        return not self == other
 
     @property
     def _dict(self):
@@ -209,23 +219,23 @@ class FormData(object):
         if cadence == 'hour':
             base = root + station.lower() + '{:d}'
             years = range(start_date.year, end_date.year + 1)
-            dsets = (base.format(year) for year in years)
+            dsets = (safe_format(base, year) for year in years)
         elif cadence == 'minute':
             base = root + station.lower() + '{:d}{:02d}'
             # note the creation of per-diem date stamps followed by a
-            # set comprehension over their strings appears wasetful because it
-            # creates ~30X more date objects than we strictly need.
-            #  but doing the maths correctly ourselves
-            #  including edge and corner cases is
-            #  messy, complex, and easy to screw up
+            #   set comprehension over their strings appears wasetful because
+            #   it creates ~30X more date objects than we strictly need.
+            #   but doing the maths correctly ourselves
+            #   including edge and corner cases is
+            #   messy, complex, and easy to screw up
 
             # +1 so we _include_ the end date in range
             num_days = (end_date - start_date).days + 1
             all_days = (start_date + timedelta(day) for day in range(num_days))
-            dsets = {base.format(dt.year, dt.month) for dt in all_days}
+            dsets = {safe_format(base, dt.year, dt.month) for dt in all_days}
         else:
             mess = 'cadence {} cannot be handled.\nShould be one of: {}'
-            raise ValueError(mess.format(cadence, cadences_supported))
+            raise ValueError(safe_format(mess, cadence, cadences_supported))
         self.datasets = ','.join(dset for dset in dsets)
 
 
@@ -234,6 +244,9 @@ class RequestConfigParser(object):
     Knows how to read the configuration file for making requests to
     the WDC and INTERMAGNET webservices
     """
+    headers_need = ['Accept', 'Accept-Encoding', 'Content-Type']
+    urlbits_need = ['Hostname', 'Route']
+
     def __init__(self, config_file, target_service):
         """
         Parameters
@@ -244,16 +257,20 @@ class RequestConfigParser(object):
             Which we bervice are we targeting? Currently only
             'WDC'
         """
-        self._from_file = config_file
+        self.filename = config_file
         self.config = ConfigParser()
         self.config.read(config_file)
         self._check_service(target_service)
         self.service = target_service
 
     def __repr__(self):
-        return '{}({}, {})'.format(
-            self.__class__.__name__, repr(self._from_file), repr(self.service)
+        mess = safe_format(
+            '{}({}, {})',
+            self.__class__.__name__,
+            repr(self.filename),
+            repr(self.service)
         )
+        return mess
 
     def extract_headers(self):
         """
@@ -269,18 +286,25 @@ class RequestConfigParser(object):
         ConfigError if any of the required header values
         are not options within the config file
         """
-        head_keys = ['Accept', 'Accept-Encoding', 'Content-Type']
-
         try:
-            heads = {k: self.config.get(self.service, k) for k in head_keys}
+            heads = {
+                k: self.config.get(self.service, k) for k in self.headers_need
+            }
         except NoOptionError as err:
             mess = (
                 'cannot load request headers from config\n' +
                 'require values for {0}\n' +
                 'under section for service `[{1}]`\n' +
+                'found only {2}\n' +
                 str(err)
             )
-            raise ConfigError(mess.format(head_keys, self.service))
+            formatted_mess = safe_format(
+                mess,
+                self.headers_need,
+                self.service,
+                list(self.config[self.service].keys())
+            )
+            raise ConfigError(formatted_mess)
         return heads
 
     def extract_url(self):
@@ -297,22 +321,36 @@ class RequestConfigParser(object):
         ConfigError if any of the required parts of the url are not options
         within the config file
         """
-        url_keys = ['Hostname', 'Route']
         try:
-            url = '/'.join(self.config.get(self.service, k) for k in url_keys)
+            url = '/'.join(
+                self.config.get(self.service, k) for k in self.urlbits_need
+             )
         except NoOptionError as err:
             mess = (
                 'cannot load request url from config\n' +
                 'require values for {0}\n' +
                 'under section for service `[{1}]`\n' +
+                'found only {2}\n' +
                 str(err)
             )
-            raise ConfigError(mess.format(url_keys, self.service))
+            formatted = safe_format(
+                mess,
+                self.urlbits_need,
+                self.service,
+                list(self.config[self.service].keys())
+                )
+            raise ConfigError(formatted)
         return url
 
     def form_data__format(self):
         """
         The format for the output files as read from the config.
+
+        N.B.
+        The double_underscore (`__`) in the name is trying to indicate
+        that we are reading the 'format' part of the 'form_data'
+        from the config file.... inspired by
+        [django's usage](http://stackoverflow.com/questions/5481682)
 
         Returns
         -------
@@ -335,16 +373,19 @@ class RequestConfigParser(object):
                 'cannot find required value {}\n' +
                 'in config for service:{}'
             )
-            raise ConfigError(mess.format(template_option, self.service))
+            formatted_mess = safe_format(mess, template_option, self.service)
+            raise ConfigError(formatted_mess)
         try:
             outfiletype = self.config.get(self.service, outfile_option)
         except NoOptionError:
             mess = (
-                'cannot find FileType option value {}\n' +
+                'cannot find "FileType" option value {}\n' +
                 'in config for service:{}'
             )
-            raise ConfigError(mess.format(outfile_option, self.service))
-        return outfmt_template.format(outfiletype)
+            formatted_mess = safe_format(mess, outfile_option, self.service)
+            raise ConfigError(formatted_mess)
+        final_format = safe_format(outfmt_template, outfiletype)
+        return final_format
 
     def _check_service(self, service):
         """
@@ -363,36 +404,9 @@ class RequestConfigParser(object):
                 'should look like (like `[{0}]`)\n' +
                 'found sections for {1}\n'
             )
-            raise ConfigError(mess.format(service, self.config.sections()))
-
-
-def rubbish_funtional_test():
-    configpath = pth.join(pth.dirname(pth.abspath(__file__)),
-                          'consume_rest.ini')
-    cadence = 'minute'
-    station = 'ESK'
-    service = 'WDC'
-    start_date = date(2015, 4, 1)
-    end_date = date(2015, 4, 30)
-
-    config = RequestConfigParser(configpath, service)
-    req = DataRequest()
-    req.read_attributes(config)
-    form_data = FormData(config)
-    form_data.set_datasets(start_date, end_date, station, cadence, service)
-    req.set_form_data(form_data.as_dict())
-
-    resp = rq.post(req.url, data=req.form_data, headers=req.headers)
-    with open('./{}_test_wdc_{}.zip'.format(station, cadence), 'wb') as file_:
-        file_.write(resp.content)
-
-    payload_data = req.form_data
-    payload_data['format'] = 'text/x-iaga2002'
-    resp_iaga = rq.post(req.url, data=payload_data, headers=req.headers)
-    with open('./{}_test_iaga2k2_{}.zip'.format(station,
-                                                cadence), 'wb') as file_:
-        file_.write(resp_iaga.content)
+            formatted_mess = safe_format(mess, service, self.config.sections())
+            raise ConfigError(formatted_mess)
 
 
 if __name__ == '__main__':
-    rubbish_funtional_test()
+    pass  # this is module is only for being imported
