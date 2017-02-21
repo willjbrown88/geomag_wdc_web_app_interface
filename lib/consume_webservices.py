@@ -75,7 +75,7 @@ class DataRequest(object):
     @property
     def can_send(self):
         """
-        have we populated enough data thatt we can send a request?
+        have we populated enough data that we can send a request?
         """
         if self.headers and self.form_data and self.url:
             return True
