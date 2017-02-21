@@ -4,12 +4,10 @@ from lib.consume_webservices import DataRequest
 
 MOCK_FORMAT = 'wibble'
 MOCK_URL = 'https://www.example.com'
-MOCK_HEADERS = {}
+MOCK_HEADERS = {'mock': 'header'}
 class MockConfig():
     def form_data__format(_):
         return MOCK_FORMAT
-    def __repr__(self):
-        return '{}()'.format(self.__class__.__name__)
     def extract_headers(_):
         return MOCK_HEADERS
     def extract_url(_):
@@ -69,7 +67,7 @@ def test_read_headers():
 def test_read_attributes():
     """
     test the `read_attributes` method
-    can overwrite `headers` and `url` params
+    can overwrite both `headers` and `url` params
     based on parsed config file values
     """
     req = DataRequest(url='not a real url', headers={'accept': 'nothing'})
@@ -78,3 +76,28 @@ def test_read_attributes():
     req.read_attributes(MockConfig())
     assert req.headers == MOCK_HEADERS
     assert req.url == MOCK_URL
+
+
+def test_set_form_data():
+    """does the `set_form_data` do what it says on the tin?"""
+    empty_at_1st = DataRequest()
+    assert empty_at_1st.form_data == {}
+    empty_at_1st.set_form_data({'walrus': 'power'})
+    assert empty_at_1st.form_data['walrus'] == 'power'
+    populated_at_1st = DataRequest(form_data={'walrus': 'power'})
+    assert populated_at_1st.form_data['walrus'] == 'power'
+    populated_at_1st.set_form_data({'narwhal': 'tusk'})
+    assert populated_at_1st.form_data['narwhal'] == 'tusk'
+
+
+def test_can_send():
+    """can send should only work with fully populated instance"""
+    empty_at_1st = DataRequest()
+    assert not empty_at_1st.can_send
+    config = MockConfig()
+    empty_at_1st.read_headers(config)
+    assert not empty_at_1st.can_send
+    empty_at_1st.read_url(config)
+    assert not empty_at_1st.can_send
+    empty_at_1st.set_form_data({'some': 'data'})
+    assert empty_at_1st.can_send

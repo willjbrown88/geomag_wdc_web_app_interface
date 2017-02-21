@@ -1,6 +1,6 @@
 """
 Consume the BGS-WDC and INTERMAGNET webservices.
-Lots of the server unteraction is controlled
+Lots of the server interaction is controlled
 by the `.ini` configuration file.
 """
 from configparser import ConfigParser, NoOptionError
