@@ -6,12 +6,10 @@ MOCK_FORMAT = 'wibble'
 MOCK_URL = 'https://www.example.com'
 MOCK_HEADERS = {'mock': 'header'}
 class MockConfig():
-    def form_data__format(_):
+    url = MOCK_URL
+    headers = MOCK_HEADERS
+    def form_data__format(self):
         return MOCK_FORMAT
-    def extract_headers(_):
-        return MOCK_HEADERS
-    def extract_url(_):
-        return MOCK_URL
 
 def test_construction_empty():
     """

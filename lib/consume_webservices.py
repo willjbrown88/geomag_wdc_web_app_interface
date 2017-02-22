@@ -87,7 +87,7 @@ class DataRequest(object):
             thing that knows how to read `urls` from
             configuration files
         """
-        self.url = request_config.extract_url()
+        self.url = request_config.url
 
     def read_headers(self, request_config):
         """
@@ -100,7 +100,7 @@ class DataRequest(object):
             thing that knows how to read from
             configuration files
         """
-        self.headers = request_config.extract_headers()
+        self.headers = request_config.headers
 
     def read_attributes(self, request_config):
         """
@@ -144,7 +144,7 @@ class FormData(object):
             thing that knows how to read  the expected return data
             format from configuration files
         """
-        self.format = request_config.form_data__format()
+        self.format = request_config.dataformat
         self.datasets = None
         self._from_req_parser = request_config
 
@@ -259,7 +259,7 @@ class ParsedConfigFile(object):
     config_file: file path (string)
         location of the configuration file we want to read
     target_service: string
-        Which we bervice are we targeting? i
+        Which we service are we targeting?
         Currently only 'WDC'.
 
     Attributes

@@ -7,8 +7,7 @@ from lib.consume_webservices import FormData
 
 MOCK_FORMAT = 'wibble'
 class MockConfig(object):
-    def form_data__format(self):
-        return MOCK_FORMAT
+    dataformat = MOCK_FORMAT
     def __repr__(self):
         return '{}()'.format(self.__class__.__name__)
 
