@@ -3,11 +3,8 @@ Consume the BGS-WDC and INTERMAGNET webservices.
 Lots of the server interaction is controlled
 by the `.ini` configuration file.
 """
+from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
-from datetime import date, timedelta
-from os import path as pth
-
-import requests as rq
 
 from lib.sandboxed_format import safe_format
 
@@ -77,10 +74,7 @@ class DataRequest(object):
         """
         have we populated enough data that we can send a request?
         """
-        if self.headers and self.form_data and self.url:
-            return True
-        else:
-            return False
+        return bool(self.headers and self.form_data and self.url)
 
     def read_url(self, request_config):
         """
@@ -123,6 +117,17 @@ class DataRequest(object):
         self.read_headers(request_config)
 
     def set_form_data(self, form_data_dict):
+        """
+        set our form_data attribute based on the
+        passed dictionary of data
+
+        Parameters
+        ----------
+        form_data_dict: dict
+            something like
+            {'datasets': '/route_url/aaa1978',
+             'format':text/x-wdc, }
+        """
         self.form_data = form_data_dict
 
 
@@ -145,8 +150,8 @@ class FormData(object):
 
     def __str__(self):
         """pretty (ish) printing)"""
-        foo = safe_format('{}:\n    {}', self.__class__.__name__, self._dict)
-        return foo
+        strout = safe_format('{}:\n    {}', self.__class__.__name__, self._dict)
+        return strout
 
     def __repr__(self):
         args_part = safe_format('({})', self._from_req_parser)
@@ -393,7 +398,6 @@ class ParsedConfigFile(object):
         """
         template_option = '_format_template'
         outfile_option = 'FileFormat'
-        fmt_key = 'format'
         try:
             outfmt_template = self._config.get(self.service, template_option)
         except NoOptionError:

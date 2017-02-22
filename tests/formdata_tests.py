@@ -1,3 +1,4 @@
+"""test container class for POST request form data"""
 from datetime import date
 import pytest
 
@@ -5,8 +6,8 @@ from lib.consume_webservices import FormData
 
 
 MOCK_FORMAT = 'wibble'
-class MockConfig():
-    def form_data__format(_):
+class MockConfig(object):
+    def form_data__format(self):
         return MOCK_FORMAT
     def __repr__(self):
         return '{}()'.format(self.__class__.__name__)
@@ -31,7 +32,7 @@ def test_repr_str_eq():
     original = FormData(MockConfig())
     via_repr = eval(repr(original))
     assert original == via_repr
-    via_repr.format = "don't monkey patch in prodiuction folks"
+    via_repr.format = "don't monkey patch in production folks"
     assert original != via_repr
 
     str_rep = str(original)
@@ -99,5 +100,3 @@ def test_as_dict():
     payload_dict = formdata.as_dict()
     assert 'datasets' in payload_dict.keys()
     assert payload_dict.get('format') == MOCK_FORMAT
-
-

@@ -2,7 +2,6 @@
 functional tests for getting geomag data via
 requests to WDC and INTERMAGNET web services
 """
-from configparser import ConfigParser
 from datetime import date
 import filecmp
 import glob

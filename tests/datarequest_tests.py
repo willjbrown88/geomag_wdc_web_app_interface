@@ -1,4 +1,4 @@
-
+"""test building up a request to a Geomag data webservice"""
 from lib.consume_webservices import DataRequest
 
 

@@ -1,5 +1,8 @@
+"""
+tests for the reading of config files for
+bits of websrevice requests that will not change much
+"""
 import configparser
-from datetime import date
 
 import pytest
 
@@ -34,7 +37,7 @@ class MockCfgParser(object):
         return self.data
     def read(self, _):
         return None
-    def sections(_):
+    def sections(self):
         return [THE_SERVICE]
     def get(self, _, key):
         try:
@@ -47,7 +50,6 @@ def test_construction(monkeypatch):
     """can we make a new instance of a ParsedConfigFile?"""
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', MockCfgParser)
     got = ParsedConfigFile('afile', THE_SERVICE)
-    LALALAL = 123
     assert got.service == THE_SERVICE
     # test failure to find service raises sane error
     not_in_there_service = 'Wally the service'
@@ -90,7 +92,7 @@ def test_extract_headers_sad_path(monkeypatch):
             'NOTAccept': 'spam',
             'NOTAccept-Encoding': 'ham',
             'NOTContent-Type': 'eggs'
-         }
+        }
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
     with pytest.raises(ConfigError) as err:
         ParsedConfigFile('whatever', THE_SERVICE)
@@ -114,7 +116,7 @@ def test_extract_url_sad_path(monkeypatch):
         url_bits = {
             'NOTHostname': 'foo',
             'NOTRoute': 'bar',
-         }
+        }
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
     with pytest.raises(ConfigError) as err:
         ParsedConfigFile('whatever', THE_SERVICE)
@@ -139,7 +141,7 @@ def test_form_data__format_sad_no_format_template(monkeypatch):
         for_form_bits = {
             'FileFormat': 'beep',
             'no_format_template': 'here'
-         }
+        }
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
     with pytest.raises(ConfigError) as err:
         ParsedConfigFile('whatever', THE_SERVICE)
@@ -153,7 +155,7 @@ def test_form_data__format_sad_no_file_format(monkeypatch):
         for_form_bits = {
             'NoFileFormatHere': 'beep',
             '_format_template': 'here'
-         }
+        }
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
     with pytest.raises(ConfigError) as err:
         ParsedConfigFile('whatever', THE_SERVICE)
@@ -164,6 +166,7 @@ def test_form_data__format_sad_no_file_format(monkeypatch):
 
 def test_reads_supplied_filename(monkeypatch):
     class SpyCfgParser(MockCfgParser):
+        """a config class that logs read method calls"""
         read_call_count = 0
         read_called_with = 'walrus'
 
@@ -177,6 +180,6 @@ def test_reads_supplied_filename(monkeypatch):
     filename = 'a_unique_file.name'
     assert SpyCfgParser.read_call_count == 0
     assert SpyCfgParser.read_called_with == 'walrus'
-    parser = ParsedConfigFile(filename, THE_SERVICE)
+    ParsedConfigFile(filename, THE_SERVICE)
     assert SpyCfgParser.read_call_count == 1
     assert SpyCfgParser.read_called_with == filename
