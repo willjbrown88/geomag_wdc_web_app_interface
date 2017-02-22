@@ -85,11 +85,11 @@ class DataRequest(object):
     def read_url(self, request_config):
         """
         Get the request url from the config file using
-        the RequestConfigParser `config`
+        the ParsedConfigFile `config`
 
         Parameters
         ---------
-        request_config: RequestConfigParser
+        request_config: ParsedConfigFile
             thing that knows how to read `urls` from
             configuration files
         """
@@ -98,11 +98,11 @@ class DataRequest(object):
     def read_headers(self, request_config):
         """
         Get the request headers from the config file using
-        the RequestConfigParser `config`
+        the ParsedConfigFile `config`
 
         Parameters
         ---------
-        request_config: RequestConfigParser
+        request_config: ParsedConfigFile
             thing that knows how to read from
             configuration files
         """
@@ -111,11 +111,11 @@ class DataRequest(object):
     def read_attributes(self, request_config):
         """
         Get as many attributes as posible from the config file using
-        the RequestConfigParser `config`
+        the ParsedConfigFile `config`
 
         Parameters
         ---------
-        request_config: RequestConfigParser
+        request_config: ParsedConfigFile
             thing that knows how to read from
             configuration files
         """
@@ -135,7 +135,7 @@ class FormData(object):
         """
         Parameters
         ---------
-        request_config: RequestConfigParser
+        request_config: ParsedConfigFile
             thing that knows how to read  the expected return data
             format from configuration files
         """
@@ -239,35 +239,63 @@ class FormData(object):
         self.datasets = ','.join(dset for dset in dsets)
 
 
-class RequestConfigParser(object):
+class ParsedConfigFile(object):
     """
-    Knows how to read the configuration file for making requests to
-    the WDC and INTERMAGNET webservices
+    Read the configuration file for making requests to
+    the WDC and INTERMAGNET webservices.
+
+    Usage
+    -----
+    File is read on instantiation, but methods to
+    extract parts needed are public `extract_url` etc.
+
+    Parameters
+    ----------
+    config_file: file path (string)
+        location of the configuration file we want to read
+    target_service: string
+        Which we bervice are we targeting? i
+        Currently only 'WDC'.
+
+    Attributes
+    ---------
+    dataformat: string
+        format we want observatory data to come back in.
+        Becomes part of the FormData.
+        Typically contains filetype e.g. 'text/x-iaga2002'
+    service: string
+        the geomag webservice to which to make the request,
+        e.g. 'WDC' or (in future) 'INTERMAGNET'
+    headers: `dict` of strings
+        header values for the HTTP the request,
+        e.g. {'Accept-Encoding': 'gzip'}
+    url: string
+        The URL to which we will send the request
+
+    Raises
+    ------
+    ConfigError if any of the required header values
+    are not options within the config file
     """
     headers_need = ['Accept', 'Accept-Encoding', 'Content-Type']
     urlbits_need = ['Hostname', 'Route']
 
     def __init__(self, config_file, target_service):
-        """
-        Parameters
-        ----------
-        config_file: file path (string)
-            location of the configuration file we want to read
-        target_service: string
-            Which we bervice are we targeting? Currently only
-            'WDC'
-        """
-        self.filename = config_file
-        self.config = ConfigParser()
-        self.config.read(config_file)
+        """ see class docstring """
+        self._filename = config_file
+        self._config = ConfigParser()
+        self._config.read(self._filename)
         self._check_service(target_service)
         self.service = target_service
+        self.headers = self.extract_headers()
+        self.url = self.extract_url()
+        self.dataformat = self.form_data__format()
 
     def __repr__(self):
         mess = safe_format(
             '{}({}, {})',
             self.__class__.__name__,
-            repr(self.filename),
+            repr(self._filename),
             repr(self.service)
         )
         return mess
@@ -288,7 +316,7 @@ class RequestConfigParser(object):
         """
         try:
             heads = {
-                k: self.config.get(self.service, k) for k in self.headers_need
+                k: self._config.get(self.service, k) for k in self.headers_need
             }
         except NoOptionError as err:
             mess = (
@@ -302,7 +330,7 @@ class RequestConfigParser(object):
                 mess,
                 self.headers_need,
                 self.service,
-                list(self.config[self.service].keys())
+                list(self._config[self.service].keys())
             )
             raise ConfigError(formatted_mess)
         return heads
@@ -323,8 +351,8 @@ class RequestConfigParser(object):
         """
         try:
             url = '/'.join(
-                self.config.get(self.service, k) for k in self.urlbits_need
-             )
+                self._config.get(self.service, k) for k in self.urlbits_need
+            )
         except NoOptionError as err:
             mess = (
                 'cannot load request url from config\n' +
@@ -337,7 +365,7 @@ class RequestConfigParser(object):
                 mess,
                 self.urlbits_need,
                 self.service,
-                list(self.config[self.service].keys())
+                list(self._config[self.service].keys())
                 )
             raise ConfigError(formatted)
         return url
@@ -367,7 +395,7 @@ class RequestConfigParser(object):
         outfile_option = 'FileFormat'
         fmt_key = 'format'
         try:
-            outfmt_template = self.config.get(self.service, template_option)
+            outfmt_template = self._config.get(self.service, template_option)
         except NoOptionError:
             mess = (
                 'cannot find required value {}\n' +
@@ -376,7 +404,7 @@ class RequestConfigParser(object):
             formatted_mess = safe_format(mess, template_option, self.service)
             raise ConfigError(formatted_mess)
         try:
-            outfiletype = self.config.get(self.service, outfile_option)
+            outfiletype = self._config.get(self.service, outfile_option)
         except NoOptionError:
             mess = (
                 'cannot find "FileType" option value {}\n' +
@@ -398,13 +426,15 @@ class RequestConfigParser(object):
             webservice to target, either 'WDC' or
             'INTERMAGNET'
         """
-        if service not in self.config.sections():
+        if service not in self._config.sections():
             mess = (
                 'cannot find service:{0} in configuration\n' +
                 'should look like (like `[{0}]`)\n' +
                 'found sections for {1}\n'
             )
-            formatted_mess = safe_format(mess, service, self.config.sections())
+            formatted_mess = safe_format(
+                mess, service, self._config.sections()
+            )
             raise ConfigError(formatted_mess)
 
 

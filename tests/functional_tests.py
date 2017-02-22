@@ -39,7 +39,7 @@ def test_getting_wdc_format_hour_data_from_wdc(tmpdir):
 
     tmppath = str(tmpdir)
 
-    config = cws.RequestConfigParser(configpath, service)
+    config = cws.ParsedConfigFile(configpath, service)
     form_data = cws.FormData(config)
     with pytest.raises(ValueError):
         form_data.as_dict()
@@ -83,7 +83,7 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):
     oraclefiles = [os.path.basename(file_) for file_ in glob.glob(
         os.path.join(ORACLEPATH, file_pattern))]
 
-    config = cws.RequestConfigParser(configpath, service)
+    config = cws.ParsedConfigFile(configpath, service)
     form_data = cws.FormData(config)
     with pytest.raises(ValueError):
         form_data.as_dict()
