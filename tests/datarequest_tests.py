@@ -1,15 +1,41 @@
 """test building up a request to a Geomag data webservice"""
-from lib.consume_webservices import DataRequest
+import pytest
+import requests
+
+from lib.consume_webservices import DataRequest, InvalidRequest
 
 
 MOCK_FORMAT = 'wibble'
 MOCK_URL = 'https://www.example.com'
 MOCK_HEADERS = {'mock': 'header'}
-class MockConfig():
+class MockConfig(object):
     url = MOCK_URL
     headers = MOCK_HEADERS
     def form_data__format(self):
         return MOCK_FORMAT
+
+class MockResponse(object):
+    status_code = requests.codes.ok
+    raise_for_status = requests.models.Response.raise_for_status
+    reason = 'OK'
+
+class SpyRequests(object):
+    post_call_count = 0
+    post_called_with = 'not a request'
+
+    @classmethod
+    def post(cls, url, data, headers):
+        cls.post_call_count += 1
+        cls.post_called_with = {
+            'url': url, 'headers': headers, 'data': data
+            }
+        return MockResponse()
+
+    @classmethod
+    def reset(cls):
+        cls.post_call_count = 0
+        cls.post_called_with = 'not a request'
+
 
 def test_construction_empty():
     """
@@ -21,6 +47,96 @@ def test_construction_empty():
     assert req.form_data == {}
     assert req.url == ''
     assert not req.can_send
+
+
+def test_sending_request_happy_path(monkeypatch):
+    """
+    if we've built a valid request, can we send
+    it?
+    """
+    SpyRequests.reset()
+    monkeypatch.setattr('lib.consume_webservices.rq', SpyRequests)
+    req = DataRequest()
+    req.read_attributes(MockConfig())
+    req.set_form_data({'format': MOCK_FORMAT, 'datasets': 'wibble'})
+    assert SpyRequests.post_call_count == 0
+    req.send()
+    assert SpyRequests.post_call_count == 1
+    print(SpyRequests.post_called_with)
+
+
+def test_cannot_send_until_all_parts_populated(monkeypatch):
+    """
+    if we do not have a complete DataRequest,
+    we should not be able to send it.
+
+    We'll create an empty `DataRequest` and
+    slowly populate it, checking at each stage
+    that it cannot be sent until it is full
+    """
+    SpyRequests.reset()
+    monkeypatch.setattr('lib.consume_webservices.rq', SpyRequests)
+    config = MockConfig()
+
+    assert SpyRequests.post_call_count == 0
+    req = DataRequest()
+    with pytest.raises(InvalidRequest) as err:
+        req.send()
+    err_mess = str(err.value)
+    for method in ['read_url', 'read_headers', 'set_form_data']:
+        assert method in err_mess
+    assert SpyRequests.post_call_count == 0
+
+    req.read_headers(config)
+    with pytest.raises(InvalidRequest) as err:
+        req.send()
+    err_mess = str(err.value)
+    for method in ['read_url', 'set_form_data']:
+        assert method in err_mess
+    assert 'read_headers' not in err_mess
+    assert SpyRequests.post_call_count == 0
+
+    req.read_url(config)
+    with pytest.raises(InvalidRequest) as err:
+        req.send()
+    err_mess = str(err.value)
+    assert 'set_form_data' in err_mess
+    for method in ['read_url', 'read_headers']:
+        assert method not in err_mess
+    assert SpyRequests.post_call_count == 0
+
+    req.set_form_data({'some': 'data'})
+    # now everthing is set we should be able to send
+    #  without raising an error
+    resp = req.send()
+    assert SpyRequests.post_call_count == 1
+    assert resp.status_code == MockResponse.status_code
+
+
+
+def test_sending_request_404_response_raises(monkeypatch):
+    """
+    if we've built a request,
+    sent it but got a 404 error response,
+    do we raise the appropriate error?
+    """
+    class Mock404(object):
+        status_code = requests.codes.not_found
+        reason = 'Not Found'
+        url = MOCK_URL
+
+        raise_for_status = requests.models.Response.raise_for_status
+
+    class Mock404Responder(object):
+        def post(**kwargs):
+            return Mock404()
+
+    monkeypatch.setattr('lib.consume_webservices.rq', Mock404Responder)
+    req = DataRequest()
+    req.read_attributes(MockConfig())
+    req.set_form_data({'some': 'data'})
+    with pytest.raises(requests.exceptions.HTTPError):
+        req.send()
 
 
 def test_construction_valid_from_args():
@@ -76,8 +192,11 @@ def test_read_attributes():
     assert req.url == MOCK_URL
 
 
-def test_set_form_data():
-    """does the `set_form_data` do what it says on the tin?"""
+def test_set_form_data_config():
+    """
+    Can we set and reset form_data
+    from dict?
+    """
     empty_at_1st = DataRequest()
     assert empty_at_1st.form_data == {}
     empty_at_1st.set_form_data({'walrus': 'power'})

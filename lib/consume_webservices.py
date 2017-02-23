@@ -6,11 +6,20 @@ by the `.ini` configuration file.
 from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
 
+import requests as rq
+
 from lib.sandboxed_format import safe_format
 
 
 class ConfigError(Exception):
     """Errors reading config files for consuming webservices"""
+    pass
+
+class InvalidRequest(ValueError):
+    """
+    The request is invalid: probably the parts are
+    not fully populated
+    """
     pass
 
 
@@ -76,6 +85,38 @@ class DataRequest(object):
         """
         return bool(self.headers and self.form_data and self.url)
 
+    def send(self):
+        """
+        Send a populated DataRequest
+
+        Side Effects
+        ------------
+        Makes an HTTP request over the network
+
+        Raises
+        ------
+        InvalidRequest if we've not been fully populated
+        """
+        if not self.can_send:
+            self._error_with_message()
+        else:
+            response = rq.post(url=self.url,
+                               data=self.form_data, headers=self.headers)
+            response.raise_for_status()
+            return response
+
+    def _error_with_message(self):
+        """raise an error after building relevent error message"""
+        mess_base = 'Cannot send request: missing {}; set by calling `{}` method'
+        mess = ''
+        if not self.headers:
+            mess += mess_base.format('headers', 'read_headers(config)')
+        if not self.url:
+            mess += mess_base.format('url', 'read_url(config)')
+        if not self.form_data:
+            mess += mess_base.format('form data', 'set_form_data(form_data_dict)')
+        raise InvalidRequest(mess)
+
     def read_url(self, request_config):
         """
         Get the request url from the config file using
@@ -116,7 +157,7 @@ class DataRequest(object):
         self.read_url(request_config)
         self.read_headers(request_config)
 
-    def set_form_data(self, form_data_dict):
+    def set_form_data(self, form_data_dict, config=None):
         """
         set our form_data attribute based on the
         passed dictionary of data
