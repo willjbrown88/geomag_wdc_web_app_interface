@@ -1,4 +1,8 @@
 language: python
+branches:
+    only:
+    - master
+    - w-travis
 python:
     - "3.5"
     - "nightly"
