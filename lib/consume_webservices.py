@@ -157,7 +157,7 @@ class DataRequest(object):
         self.read_url(request_config)
         self.read_headers(request_config)
 
-    def set_form_data(self, form_data_dict, config=None):
+    def set_form_data(self, form_data_dict):
         """
         set our form_data attribute based on the
         passed dictionary of data

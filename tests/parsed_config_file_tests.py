@@ -8,6 +8,8 @@ import pytest
 
 from lib.consume_webservices import ParsedConfigFile, ConfigError
 
+# these small Mock classes are OK weird
+# pylint: disable=missing-docstring, no-self-use
 THE_SERVICE = 'ABC'
 class MockCfgParser(object):
     """
@@ -45,6 +47,7 @@ class MockCfgParser(object):
         except KeyError:
             raise configparser.NoOptionError(key, THE_SERVICE)
 
+# pylint: enable=missing-docstring, no-self-use
 
 def test_construction(monkeypatch):
     """can we make a new instance of a ParsedConfigFile?"""
@@ -65,7 +68,7 @@ def test_repr(monkeypatch):
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', MockCfgParser)
     filename = 'a-very-good.file'
     original = ParsedConfigFile(filename, THE_SERVICE)
-    via_repr = eval(repr(original))
+    via_repr = eval(repr(original))   # pylint: disable=eval-used; OK for testing repr
     assert via_repr.service == original.service
     assert repr(via_repr) == repr(original)
     for instance in (original, via_repr):
@@ -78,8 +81,8 @@ def test_extract_headers_happy_path(monkeypatch):
     parser = ParsedConfigFile('whatever', THE_SERVICE)
     got_headers = parser.extract_headers()
     expected = MockCfgParser.header_bits
-    for key in expected.keys():
-        assert expected[key] == got_headers[key]
+    for key, expected_value in expected.items():
+        assert expected_value == got_headers[key]
 
 
 def test_extract_headers_sad_path(monkeypatch):
@@ -87,12 +90,15 @@ def test_extract_headers_sad_path(monkeypatch):
     if we can't extract headers from config file,
     do we fail with a sane error message?
     """
+    # small weird Mocks OK
+    # pylint: disable=missing-docstring
     class BadCfgParser(MockCfgParser):
         header_bits = {
             'NOTAccept': 'spam',
             'NOTAccept-Encoding': 'ham',
             'NOTContent-Type': 'eggs'
         }
+    # pylint: enable=missing-docstring
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', BadCfgParser)
     with pytest.raises(ConfigError) as err:
         ParsedConfigFile('whatever', THE_SERVICE)
@@ -102,6 +108,7 @@ def test_extract_headers_sad_path(monkeypatch):
 
 
 def test_extract_url_happy_path(monkeypatch):
+    """able to get URL from config file?"""
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', MockCfgParser)
     parser = ParsedConfigFile('whatever', THE_SERVICE)
     got_url = parser.extract_url()
@@ -112,7 +119,11 @@ def test_extract_url_happy_path(monkeypatch):
 
 
 def test_extract_url_sad_path(monkeypatch):
-    class BadCfgParser(MockCfgParser):
+    """
+    do we raise an appropriate error
+    if we cannot get the bits we need from the config?
+    """
+    class BadCfgParser(MockCfgParser):  # pylint: disable=missing-docstring
         url_bits = {
             'NOTHostname': 'foo',
             'NOTRoute': 'bar',
@@ -128,7 +139,10 @@ def test_extract_url_sad_path(monkeypatch):
         assert str_ in err_mess
 
 
-def test_form_data__format_happy_path(monkeypatch):
+def test_form_data__format_happy_path(monkeypatch):  # pylint: disable=invalid-name
+    """
+    can we read bits we expect out of a valid config file?
+    """
     monkeypatch.setattr('lib.consume_webservices.ConfigParser', MockCfgParser)
     parser = ParsedConfigFile('whatever', THE_SERVICE)
     got_fmt = parser.form_data__format()
@@ -136,8 +150,9 @@ def test_form_data__format_happy_path(monkeypatch):
     assert got_fmt == expected_fmt
 
 
-def test_form_data__format_sad_no_format_template(monkeypatch):
-    class BadCfgParser(MockCfgParser):
+def test_form_data__format_sad_no_format_template(monkeypatch):  # pylint: disable=invalid-name
+    """raise appropriate error if cannot get template from config?"""
+    class BadCfgParser(MockCfgParser):  # pylint: disable=missing-docstring
         for_form_bits = {
             'FileFormat': 'beep',
             'no_format_template': 'here'
@@ -150,8 +165,9 @@ def test_form_data__format_sad_no_format_template(monkeypatch):
         assert str_ in err_mess
 
 
-def test_form_data__format_sad_no_file_format(monkeypatch):
-    class BadCfgParser(MockCfgParser):
+def test_form_data__format_sad_no_file_format(monkeypatch):  # pylint: disable=invalid-name
+    """raise error if can't get file format from config?"""
+    class BadCfgParser(MockCfgParser):  # pylint: disable=missing-docstring
         for_form_bits = {
             'NoFileFormatHere': 'beep',
             '_format_template': 'here'
@@ -165,6 +181,10 @@ def test_form_data__format_sad_no_file_format(monkeypatch):
 
 
 def test_reads_supplied_filename(monkeypatch):
+    """
+    do we actually try to read the config file
+    whose name we supply
+    """
     class SpyCfgParser(MockCfgParser):
         """a config class that logs read method calls"""
         read_call_count = 0

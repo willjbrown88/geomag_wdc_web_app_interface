@@ -8,16 +8,22 @@ from lib.consume_webservices import DataRequest, InvalidRequest
 MOCK_FORMAT = 'wibble'
 MOCK_URL = 'https://www.example.com'
 MOCK_HEADERS = {'mock': 'header'}
+
+# small Mock classes can be weird
+# pylint: disable=missing-docstring, too-few-public-methods, no-self-use
 class MockConfig(object):
     url = MOCK_URL
     headers = MOCK_HEADERS
     def form_data__format(self):
         return MOCK_FORMAT
 
+# requests internals make linting unhappy
+# pylint: disable=no-member
 class MockResponse(object):
     status_code = requests.codes.ok
     raise_for_status = requests.models.Response.raise_for_status
     reason = 'OK'
+
 
 class SpyRequests(object):
     post_call_count = 0
@@ -36,6 +42,7 @@ class SpyRequests(object):
         cls.post_call_count = 0
         cls.post_called_with = 'not a request'
 
+# pylint: enable=no-member, missing-docstring, too-few-public-methods, no-self-use
 
 def test_construction_empty():
     """
@@ -64,8 +71,8 @@ def test_sending_request_happy_path(monkeypatch):
     assert SpyRequests.post_call_count == 1
     print(SpyRequests.post_called_with)
 
-
-def test_cannot_send_until_all_parts_populated(monkeypatch):
+#  long test names are OK
+def test_cannot_send_until_all_parts_populated(monkeypatch):  # pylint: disable=invalid-name
     """
     if we do not have a complete DataRequest,
     we should not be able to send it.
@@ -114,12 +121,14 @@ def test_cannot_send_until_all_parts_populated(monkeypatch):
 
 
 
-def test_sending_request_404_response_raises(monkeypatch):
+def test_sending_request_404_response_raises(monkeypatch):    # pylint: disable=invalid-name
     """
     if we've built a request,
     sent it but got a 404 error response,
     do we raise the appropriate error?
     """
+# these small Mock classes are better short and a bit weird
+# pylint: disable=no-member, missing-docstring, too-few-public-methods, no-method-argument
     class Mock404(object):
         status_code = requests.codes.not_found
         reason = 'Not Found'
@@ -130,6 +139,7 @@ def test_sending_request_404_response_raises(monkeypatch):
     class Mock404Responder(object):
         def post(**kwargs):
             return Mock404()
+ # pylint: enable=no-member, missing-docstring, too-few-public-methods, no-method-argument
 
     monkeypatch.setattr('lib.consume_webservices.rq', Mock404Responder)
     req = DataRequest()
@@ -139,7 +149,7 @@ def test_sending_request_404_response_raises(monkeypatch):
         req.send()
 
 
-def test_construction_valid_from_args():
+def test_construction_valid_from_args():  # pylint: disable=invalid-name
     """
     Can we create a DataRequest with passing
     some args and have it know it is fit to send?
