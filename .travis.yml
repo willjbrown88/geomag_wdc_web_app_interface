@@ -10,4 +10,4 @@ install:
     - "pip install ."
     - "pip install -r requirements_dev.txt"
 script:
-    -pytest --cov-report term-missing --cov=lib
+    - pytest --cov-report term-missing --cov=lib
