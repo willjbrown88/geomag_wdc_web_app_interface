@@ -4,13 +4,15 @@ import pytest
 
 from lib.consume_webservices import FormData
 
-
+# tiny Mock helper classes are OK being weird
+# pylint: disable=too-few-public-methods, missing-docstring
 MOCK_FORMAT = 'wibble'
 class MockConfig(object):
     dataformat = MOCK_FORMAT
     def __repr__(self):
         return '{}()'.format(self.__class__.__name__)
 
+# pylint: enable=too-few-public-methods, missing-docstring
 
 def test_construction():
     """
@@ -29,7 +31,7 @@ def test_repr_str_eq():
     and test for equality
     """
     original = FormData(MockConfig())
-    via_repr = eval(repr(original))
+    via_repr = eval(repr(original))  # pylint: disable=eval-used; OK for repr testing
     assert original == via_repr
     via_repr.format = "don't monkey patch in production folks"
     assert original != via_repr

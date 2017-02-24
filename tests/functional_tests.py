@@ -21,10 +21,11 @@ DATAPATH = os.path.join(
 ORACLEPATH = os.path.join(DATAPATH, 'known_good')
 
 
-def test_getting_wdc_format_hour_data_from_wdc(tmpdir):
+def test_getting_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: disable=invalid-name
     """
     smoke test WRT 'known good' data
     - downlad hourly averages of Niemeg from WDC
+    - in wdc format
     - put them in a temporary folder
     - compare them with 'known-good' examples
     """
@@ -62,10 +63,11 @@ def test_getting_wdc_format_hour_data_from_wdc(tmpdir):
     )
 
 
-def test_getting_iaga_format_minute_data_from_wdc(tmpdir):
+def test_getting_iaga_format_minute_data_from_wdc(tmpdir):  # pylint: disable=invalid-name
     """
     smoke test WRT 'known good' data
     - download a bunch of Eskdalemuir minutely averages
+    - in IAGA2002 format
     - extract them to a temp dir
     - compare each downloaded files against known-good examples
     """
