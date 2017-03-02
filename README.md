@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/lbillingham/geomag_wdc_web_app_interface.svg?branch=master)](https://travis-ci.org/lbillingham/geomag_wdc_web_app_interface)
+
 # geomag_wdc_web_app_interface
 programmatically get data from http://wdc.bgs.ac.uk/dataportal/
 
@@ -5,24 +7,24 @@ very much a work in progress
 
 # Notes from 2017-01-16 meeting with Grace Cox and Will Brown
 Main project is to get a data set of secual variation
-rapid core features liek jerks 
+rapid core features liek jerks
 monthly differences of monthly means
 
-R Holme and Will's thesis have a method for 
+R Holme and Will's thesis have a method for
 removing external fields.
 
-Everyone has a different algorithm for calc monthly means and 
+Everyone has a different algorithm for calc monthly means and
 nobody really says what they do.
 There is not even, really, a set of monthly means that gets distributed.
 BCMT does give values but they are raw: with external field still apparent.
-Will Brown has a script to clean BCMT values based on the supplied record 
+Will Brown has a script to clean BCMT values based on the supplied record
 flags.
 
-Grace's wants a single opensource, reproducible reference implimentation. 
+Grace's wants a single opensource, reproducible reference implimentation.
 
 Grace's code reads WDC format data
 that are hourly and with a daily mean.
-Would like to support WDC format as this is the most widely 
+Would like to support WDC format as this is the most widely
 used format and is what most folk will have already.
 
 from a USB stick into a
@@ -46,7 +48,7 @@ see [Grace's GitHub repo](https://github.com/gracecox/MagPy/tree/master/magpy/da
 read into big `DdataFrame` hourly means per observatory from ~1960-present
 using `glob`. [Gillet et al., 2015 COV-OBS model](http://www.spacecenter.dk/files/magnetic-models/COV-OBSx1/COV-OBS.x1.pdf) used to subtract the core field.
 
-Denoising step uses `DataFrame` that looks like: 
+Denoising step uses `DataFrame` that looks like:
 
 ```
 index = pd.TimeSeriesIndex()
@@ -70,7 +72,7 @@ There is currently an R-interface to find and remove step corrections but it wou
 - **Will** Fork (or otherwise) [Grace's GitHub repo](https://github.com/gracecox/MagPy), make a `virtualenv` and run notebook. Wiht help from Grace and Laurence.
 - **Will** answer some of the questions raised in the manuscript
 - **Laurence** can we get location from WDC REST API (poss via [postman](http://www.getpostman.com/))?
-- **Laurence** monthly mean data from WDC via REST API into folder structure in * above. Not _yet_ implimenting heirachy of defin, qdefin,  
+- **Laurence** monthly mean data from WDC via REST API into folder structure in * above. Not _yet_ implimenting heirachy of defin, qdefin,
 - **Grace** nudge Richard re letter of support for EPCC refactor
 - **Grace** continue drafting paper
 
