@@ -28,8 +28,7 @@ def assert_all_lines_same(path_1, path_2):
     (because of the way `open` works)
     Raises
     ------
-    AssertionError
-        if the files differ
+    AssertionError if the files differ
     """
     line1 = line2 = ' '
     linenum = 0
@@ -74,7 +73,6 @@ def test_getting_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: disable=inval
     req_wdc.read_attributes(config)
     assert req_wdc.can_send is False
     assert req_wdc.form_data == {}
-    # custom function due to line-ending vagueries
     req_wdc.set_form_data(form_data.as_dict())
     assert req_wdc.can_send is True
 
@@ -85,10 +83,8 @@ def test_getting_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: disable=inval
     with zipfile.ZipFile(BytesIO(resp_wdc.content)) as fzip:
         fzip.extractall(tmppath)
     gotfile = os.path.join(tmppath, os.path.basename(oraclefile))
+    # custom function due to line-ending vagueries
     assert_all_lines_same(gotfile, oraclefile)
-    # assert filecmp.cmp(gotfile, oraclefile, shallow=False), (
-        # "response differs from 'known-good' file"
-    # )
 
 
 def test_getting_iaga_format_minute_data_from_wdc(tmpdir):  # pylint: disable=invalid-name
