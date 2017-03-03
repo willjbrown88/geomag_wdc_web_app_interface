@@ -1,0 +1,13 @@
+language: python
+branches:
+    only:
+    - master
+    - w-travis
+python:
+    - "3.5"
+    - "nightly"
+install:
+    - "pip install ."
+    - "pip install -r requirements_dev.txt"
+script:
+    - pytest --cov-report term-missing --cov=lib
