@@ -30,6 +30,7 @@ def assert_all_lines_same(path_1, path_2):
     ------
     AssertionError if the files differ
     """
+    print(os.getcwd())
     line1 = line2 = ' '
     linenum = 0
     with open(path_1, 'r') as file1, open(path_2, 'r') as file2:
@@ -105,8 +106,9 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):  # pylint: disable=in
     file_pattern = station.lower() + str(year) + '*dmin.min'
 
     tmppath = str(tmpdir)  # pytest 'magic' for a temp folder
-    oraclefiles = [os.path.basename(file_) for file_ in glob.glob(
-        os.path.join(ORACLEPATH, file_pattern))]
+    # truth file names and full paths
+    oraclenames, oraclefiles = zip(*[(os.path.basename(file_), file_) for file_ in glob.glob(
+        os.path.join(ORACLEPATH, file_pattern))])
 
     config = cws.ParsedConfigFile(configpath, service)
     form_data = cws.FormData(config)
@@ -125,16 +127,19 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):  # pylint: disable=in
     )
     with zipfile.ZipFile(BytesIO(resp_iaga.content)) as fzip:
         fzip.extractall(tmppath)
-    sames, diffs, errs = filecmp.cmpfiles(tmppath, ORACLEPATH,
-                                          oraclefiles, shallow=False)
-    assert diffs == [], (
-        'files {} downloaded '.format(diffs) +
-        'but contents differ from known-good'
-    )
+    
+    # check lists of file names are same only (content comparison broken
+    # by line endings)
+    _, _, errs = filecmp.cmpfiles(tmppath, ORACLEPATH,
+                                  oraclenames, shallow=False)
     assert errs == [], (
         "could not compare {} to expected, ".format(errs) +
         "perhaps we didn't download them"
     )
-    assert sames == oraclefiles, (
-        'not all downloaded files are the same as known good ones'
-    )
+    
+    # full paths to dowloaded files
+    gotfiles = [os.path.join(tmppath, file_) for file_ in oraclenames]
+    # custom file content comparison function due to line-ending vagueries
+    [assert_all_lines_same(file1_, file2_) for file1_, file2_ in
+        zip(gotfiles, oraclefiles)]
+    
