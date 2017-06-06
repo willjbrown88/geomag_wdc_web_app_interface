@@ -138,3 +138,52 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):  # pylint: disable=in
     assert sames == oraclefiles, (
         'not all downloaded files are the same as known good ones'
     )
+
+
+def test_fetch_data_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: disable=invalid-name
+    """
+    make sure that our `fetch_data` wrapper function does the same as
+    instantiating the classes, making the request,
+    and saving the unpacked zip files sequentually
+    """
+    cadence = 'hour'
+    station = 'NGK'
+    start_date = date(2015, 4, 1)
+    end_date = date(2015, 4, 30)
+    service = 'WDC'
+    expected_filename = 'ngk2015.wdc'
+    configpath = os.path.join(DATAPATH, 'wdc_minute_data_wdcoutput.ini')
+    # TODO: cf fetch_data vs oracle files
+    # oraclefile = os.path.join(ORACLEPATH, 'ngk2015.wdc')
+
+    # ensure we have somewhere to put the data
+    manualdir = os.path.join(str(tmpdir), 'manual')
+    funcdir = os.path.join(os.path.dirname(manualdir), 'via__fetch_data')
+    for dir_ in (manualdir, funcdir):
+        os.mkdir(dir_)
+    manualfile = os.path.join(manualdir, expected_filename)
+    funcfile = os.path.join(funcdir, expected_filename)
+
+    # 'manual' way
+    config = cws.ParsedConfigFile(configpath, service)
+    form_data = cws.FormData(config)
+    form_data.set_datasets(start_date, end_date, station, cadence, service)
+    req_wdc = cws.DataRequest()
+    req_wdc.read_attributes(config)
+    req_wdc.set_form_data(form_data.as_dict())
+    resp_wdc = rq.post(
+        req_wdc.url, data=req_wdc.form_data, headers=req_wdc.headers
+    )
+
+    with zipfile.ZipFile(BytesIO(resp_wdc.content)) as fzip:
+        fzip.extractall(manualdir)
+
+    assert not os.path.isfile(funcfile)
+    # with wrapper function
+    cws.fetch_data(
+        start_date, end_date,
+        station, cadence,
+        service, funcdir, configpath
+    )
+    assert os.path.isfile(funcfile)
+    assert_all_lines_same(funcfile, manualfile)
