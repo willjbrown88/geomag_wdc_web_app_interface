@@ -30,7 +30,6 @@ def assert_all_lines_same(path_1, path_2):
     ------
     AssertionError if the files differ
     """
-    print(os.getcwd())
     line1 = line2 = ' '
     linenum = 0
     with open(path_1, 'r') as file1, open(path_2, 'r') as file2:
