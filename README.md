@@ -2,6 +2,32 @@
 
 # geomag_wdc_web_app_interface
 programmatically get data from http://wdc.bgs.ac.uk/dataportal/
+installable like: `pip install .`
+
+Main function for getting data is `consume_webservices.fetch_data`.
+
+## Example usage:
+```python
+from lib import consume_webservices as cws
+
+cadence = 'hour'
+station = 'NGK'
+start_date = date(2015, 4, 1)
+end_date = date(2015, 4, 30)
+service = 'WDC'
+download_dir = '/tmp/'
+configpath = os.path.join(<some_dir>, 'wdc_minute_data_wdcoutput.ini')
+cws.fetch_data(
+        start_date, end_date,
+        station, cadence,
+        service, download_dir, configpath
+)
+```
+See the docstring on `fetch_data` and the test in
+`tests/functional_tests.test_fetch_data_wdc_format_hour_data_from_wdc`
+for detailed useage.
+
+
 
 very much a work in progress
 

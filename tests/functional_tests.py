@@ -105,8 +105,9 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):  # pylint: disable=in
     file_pattern = station.lower() + str(year) + '*dmin.min'
 
     tmppath = str(tmpdir)  # pytest 'magic' for a temp folder
-    oraclefiles = [os.path.basename(file_) for file_ in glob.glob(
-        os.path.join(ORACLEPATH, file_pattern))]
+    # truth file names and full paths
+    oraclenames, oraclefiles = zip(*[(os.path.basename(file_), file_) for file_ in glob.glob(
+        os.path.join(ORACLEPATH, file_pattern))])
 
     config = cws.ParsedConfigFile(configpath, service)
     form_data = cws.FormData(config)
@@ -125,16 +126,68 @@ def test_getting_iaga_format_minute_data_from_wdc(tmpdir):  # pylint: disable=in
     )
     with zipfile.ZipFile(BytesIO(resp_iaga.content)) as fzip:
         fzip.extractall(tmppath)
-    sames, diffs, errs = filecmp.cmpfiles(tmppath, ORACLEPATH,
-                                          oraclefiles, shallow=False)
-    assert diffs == [], (
-        'files {} downloaded '.format(diffs) +
-        'but contents differ from known-good'
-    )
+    
+    # check lists of file names are same only (content comparison broken
+    # by line endings)
+    _, _, errs = filecmp.cmpfiles(tmppath, ORACLEPATH,
+                                  oraclenames, shallow=False)
     assert errs == [], (
         "could not compare {} to expected, ".format(errs) +
         "perhaps we didn't download them"
     )
-    assert sames == oraclefiles, (
-        'not all downloaded files are the same as known good ones'
+
+    # full paths to dowloaded files
+    gotfiles = [os.path.join(tmppath, file_) for file_ in oraclenames]
+    # custom file content comparison function due to line-ending vagueries
+    [assert_all_lines_same(file1_, file2_) for file1_, file2_ in
+        zip(gotfiles, oraclefiles)]
+
+
+def test_fetch_data_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: disable=invalid-name
+    """
+    make sure that our `fetch_data` wrapper function does the same as
+    instantiating the classes, making the request,
+    and saving the unpacked zip files sequentually
+    """
+    cadence = 'hour'
+    station = 'NGK'
+    start_date = date(2015, 4, 1)
+    end_date = date(2015, 4, 30)
+    service = 'WDC'
+    expected_filename = 'ngk2015.wdc'
+    configpath = os.path.join(DATAPATH, 'wdc_minute_data_wdcoutput.ini')
+    # TODO: cf fetch_data vs oracle files
+    # oraclefile = os.path.join(ORACLEPATH, 'ngk2015.wdc')
+
+    # ensure we have somewhere to put the data
+    manualdir = os.path.join(str(tmpdir), 'manual')
+    funcdir = os.path.join(os.path.dirname(manualdir), 'via__fetch_data')
+    for dir_ in (manualdir, funcdir):
+        os.mkdir(dir_)
+    manualfile = os.path.join(manualdir, expected_filename)
+    funcfile = os.path.join(funcdir, expected_filename)
+
+    # 'manual' way
+    config = cws.ParsedConfigFile(configpath, service)
+    form_data = cws.FormData(config)
+    form_data.set_datasets(start_date, end_date, station, cadence, service)
+    req_wdc = cws.DataRequest()
+    req_wdc.read_attributes(config)
+    req_wdc.set_form_data(form_data.as_dict())
+    resp_wdc = rq.post(
+        req_wdc.url, data=req_wdc.form_data, headers=req_wdc.headers
     )
+
+    with zipfile.ZipFile(BytesIO(resp_wdc.content)) as fzip:
+        fzip.extractall(manualdir)
+
+    assert not os.path.isfile(funcfile)
+    # with wrapper function
+    cws.fetch_data(
+        start_date, end_date,
+        station, cadence,
+        service, funcdir, configpath
+    )
+    assert os.path.isfile(funcfile)
+    assert_all_lines_same(funcfile, manualfile)
+

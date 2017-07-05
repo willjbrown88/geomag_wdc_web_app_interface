@@ -1,19 +1,90 @@
 """
-Consume the BGS-WDC and INTERMAGNET webservices.
+Consume the BGS-WDC (and, in future, INTERMAGNET) webservices.
+
+main public function to call is `fetch_data(...)`.
+Other functions and classes are for modularity/testability
+
 Lots of the server interaction is controlled
 by the `.ini` configuration file.
+as is the location of the downloaded file
 """
 from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
+import zipfile
 
 import requests as rq
+from six import BytesIO
 
 from lib.sandboxed_format import safe_format
+
+
+def fetch_data(start_date, end_date, station, cadence, service, saveroot, configpath):
+    """
+    Ask webservice `service` for observatory data
+    and download it to folder `saveroot`.
+    The data to be requested are defined by `start_date`, `end_date`,
+    `station`, and `cadence`.
+    Aspects of the request and download folder structure are read
+    from the configuration file at `configpath`
+
+    Parameters
+    ---------
+    start_date:  datetime.date
+        earliest date at which data wanted.
+    end_date:  datetime.datetime
+        latest date at which data wanted.
+    station: string
+        IAGA-style station code e.g. 'ESK', 'NGK'
+    cadence: string
+        frequency of the data. 'minute' or 'hour',
+        changes the total data span
+    service: string
+        webservice to target, only  'WDC' for now
+        (future work will support 'INTERMAGNET')
+    saveroot: file path as string
+        root directory at which to save data.
+        multi-file downloads structured according to
+        contents of `configpath`
+    configpath: file path as string
+        location of the configuration file we want to read
+
+    Returns
+    ------
+    None
+
+    Side Effects
+    ------------
+    Downloads data to the specified path.
+
+    Raises
+    ------
+    ValueError if `cadence` is not something we can use
+        (currently only 'minute' or 'hour')
+
+    ConfigError if any of the required header values
+        are not options within the config file
+
+    InvalidRequest if we cannot make a sane request to `service` based
+        on data provided via function arguments or the `configpath`.
+    """
+    config = ParsedConfigFile(configpath, service)
+    form_data = FormData(config)
+    form_data.set_datasets(start_date, end_date, station, cadence, service)
+    request = DataRequest()
+    request.read_attributes(config)
+    request.set_form_data(form_data.as_dict())
+    response = rq.post(
+        request.url, data=request.form_data, headers=request.headers
+    )
+    # TODO: make this work with > 1 file
+    with zipfile.ZipFile(BytesIO(response.content)) as fzip:
+        fzip.extractall(saveroot)
 
 
 class ConfigError(Exception):
     """Errors reading config files for consuming webservices"""
     pass
+
 
 class InvalidRequest(ValueError):
     """
@@ -248,8 +319,8 @@ class FormData(object):
             frequency of the data. 'minute' or 'hour',
             changes the total data span
         service: string
-            webservice to target, either 'WDC' or
-            'INTERMAGNET'
+            webservice to target, only 'WDC' for now
+            (+ 'INTERMAGNET' in future)
 
         Returns
         -------
@@ -269,7 +340,7 @@ class FormData(object):
         elif cadence == 'minute':
             base = root + station.lower() + '{:d}{:02d}'
             # note the creation of per-diem date stamps followed by a
-            #   set comprehension over their strings appears wasetful because
+            #   set comprehension over their strings appears wasteful because
             #   it creates ~30X more date objects than we strictly need.
             #   but doing the maths correctly ourselves
             #   including edge and corner cases is
@@ -288,7 +359,7 @@ class FormData(object):
 class ParsedConfigFile(object):
     """
     Read the configuration file for making requests to
-    the WDC and INTERMAGNET webservices.
+    the WDC  (and, in future INTERMAGNET) webservices.
 
     Usage
     -----
@@ -468,8 +539,8 @@ class ParsedConfigFile(object):
         Parameters
         ----------
         service: string
-            webservice to target, either 'WDC' or
-            'INTERMAGNET'
+            webservice to target, either 'WDC' (or,
+            in future 'INTERMAGNET')
         """
         if service not in self._config.sections():
             mess = (
