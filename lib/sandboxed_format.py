@@ -37,6 +37,7 @@ class MagicFormatMapping(Mapping):
     def __len__(self):
         return len(self._kwargs)
 
+
 # This is a necessary API but it's undocumented and moved around
 # between Python releases
 try:
@@ -57,6 +58,7 @@ class SafeFormatter(Formatter):
             else:
                 obj = obj[i]
         return obj, first
+
 
 # based on [`inspect` docs](https://docs.python.org/3/library/inspect.html)
 UNSAFE_ATTRS = [

@@ -5,8 +5,8 @@ main public function to call is `fetch_data(...)`.
 Other functions and classes are for modularity/testability
 
 Lots of the server interaction is controlled
-by the `.ini` configuration file.
-as is the location of the downloaded file
+by the `.ini` configuration file, as is
+the download file structure.
 """
 from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
@@ -18,7 +18,65 @@ from six import BytesIO
 from lib.sandboxed_format import safe_format
 
 
-def fetch_data(start_date, end_date, station, cadence, service, saveroot, configpath):
+def fetch_data(start_date, end_date, station_list, cadence, service, saveroot,
+               configpath):
+    """
+    Wrapper for the wrapper `fetch_station_data()`...
+    `fetch_station_data()` handles a single observatory, for a range of
+    dates. Here, simply accept a list of `station` codes, and pass each value
+    to `fetch_station_data()` with the remaining criteria kept constant.
+
+    Parameters
+    ---------
+    start_date:  datetime.date
+        earliest date at which data wanted.
+    end_date:  datetime.datetime
+        latest date at which data wanted.
+    station: list of string
+        IAGA-style station code e.g. 'ESK', 'NGK'
+    cadence: string
+        frequency of the data. 'minute' or 'hour',
+        changes the total data span
+    service: string
+        webservice to target, only  'WDC' for now
+        (future work will support 'INTERMAGNET')
+    saveroot: file path as string
+        root directory at which to save data.
+        multi-file downloads structured according to
+        contents of `configpath`
+    configpath: file path as string
+        location of the configuration file we want to read
+
+    Returns
+    ------
+    None
+
+    Side Effects (through `fetch_station_data()`)
+    ------------
+    Downloads data to the specified path.
+
+    Raises (through `fetch_station_data()`)
+    ------
+    ValueError if `cadence` is not something we can use
+        (currently only 'minute' or 'hour')
+
+    ConfigError if any of the required header values
+        are not options within the config file
+
+    InvalidRequest if we cannot make a sane request to `service` based
+        on data provided via function arguments or the `configpath`
+
+    InvalidResponse if the response is not the desired HTTP status code
+    """
+    [
+        fetch_station_data(start_date, end_date, station_, cadence, service,
+                           saveroot, configpath)
+        for station_ in station_list
+    ]
+
+
+def fetch_station_data(start_date, end_date, station, cadence, service,
+                       saveroot, configpath):
     """
     Ask webservice `service` for observatory data
     and download it to folder `saveroot`.
@@ -65,7 +123,9 @@ def fetch_data(start_date, end_date, station, cadence, service, saveroot, config
         are not options within the config file
 
     InvalidRequest if we cannot make a sane request to `service` based
-        on data provided via function arguments or the `configpath`.
+        on data provided via function arguments or the `configpath`
+
+    InvalidResponse if the response is not the desired HTTP status code
     """
     config = ParsedConfigFile(configpath, service)
     form_data = FormData(config)
@@ -76,9 +136,55 @@ def fetch_data(start_date, end_date, station, cadence, service, saveroot, config
     response = rq.post(
         request.url, data=request.form_data, headers=request.headers
     )
-    # TODO: make this work with > 1 file
+    check_response(response.status_code, response.content)
+
+    # TODO: make this work with > 1 file without wrapper function
     with zipfile.ZipFile(BytesIO(response.content)) as fzip:
         fzip.extractall(saveroot)
+
+
+def check_response(status_code, content):
+    """
+    Check if the server response is 'ok' (see `requests.codes`).
+    It's probably 'ok' 200, or 'internal_server_error' 500 because the server
+    is misbehaving.
+
+    Inputs
+    ------
+    status_code: http status code from post request response
+
+    content: stream content from post request response
+
+    Returns
+    -------
+    none
+
+    Raises
+    ------
+    ValueError: if http code is not 'ok' (200), or is 'ok' but empty
+        `filelist` returned
+
+    """
+    if status_code != rq.codes.ok:
+        mess = ("unexpected http response code from server: " +
+                "{}, '{}'")
+        mess = mess.format(status_code,
+                           rq.status_codes._codes[status_code][0])
+        raise ValueError(mess)
+
+    elif status_code == rq.codes.ok:
+        """An empty zipfile will still send back some bytes but can check if
+        the returned filelist is empty.
+        """
+        content = zipfile.ZipFile(BytesIO(content))
+        if not content.filelist:
+            mess = ("no valid files returned.\n" +
+                    "http response code is: {}, '{}'\n" +
+                    "data may not be available for date range " +
+                    "requested, or server is misbehaving.")
+            mess = mess.format(status_code,
+                               rq.status_codes._codes[status_code][0])
+            raise ValueError(mess)
 
 
 class ConfigError(Exception):
@@ -185,7 +291,8 @@ class DataRequest(object):
         if not self.url:
             mess += mess_base.format('url', 'read_url(config)')
         if not self.form_data:
-            mess += mess_base.format('form data', 'set_form_data(form_data_dict)')
+            mess += mess_base.format('form data',
+                                     'set_form_data(form_data_dict)')
         raise InvalidRequest(mess)
 
     def read_url(self, request_config):
@@ -262,7 +369,8 @@ class FormData(object):
 
     def __str__(self):
         """pretty (ish) printing)"""
-        strout = safe_format('{}:\n    {}', self.__class__.__name__, self._dict)
+        strout = safe_format('{}:\n    {}', self.__class__.__name__,
+                             self._dict)
         return strout
 
     def __repr__(self):

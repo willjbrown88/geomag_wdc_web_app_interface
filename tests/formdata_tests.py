@@ -7,12 +7,16 @@ from lib.consume_webservices import FormData
 # tiny Mock helper classes are OK being weird
 # pylint: disable=too-few-public-methods, missing-docstring
 MOCK_FORMAT = 'wibble'
+
+
 class MockConfig(object):
     dataformat = MOCK_FORMAT
+
     def __repr__(self):
         return '{}()'.format(self.__class__.__name__)
 
 # pylint: enable=too-few-public-methods, missing-docstring
+
 
 def test_construction():
     """
