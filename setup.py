@@ -13,5 +13,6 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=requirements
+    install_requires=requirements,
+    extras_require={'develop': dev_requirements}
 )

@@ -1,84 +1,45 @@
 """
-Consume the BGS-WDC (and, in future, INTERMAGNET) webservices.
+Consume data from the BGS AUX_OBS ftp.
 
-main public function to call is `fetch_data(...)`.
-Other functions and classes are for modularity/testability
+Currently separate to functionality of
+`consume_webservices.py` until we work out a suitable
+way to combine, if at all, but uses its main public
+function `fetch_data(...)` as a driver.
 
-Lots of the server interaction is controlled
-by the `.ini` configuration file, as is
-the download file structure.
+Server interaction is controlled
+by the `.ini` configuration file.
+as is the location of the downloaded file
 """
-from datetime import timedelta
-from configparser import ConfigParser, NoOptionError
-import zipfile
 
+# load libraries
 import requests as rq
-from six import BytesIO
-
-from lib.sandboxed_format import safe_format
 
 
-def fetch_data(start_date, end_date, station_list, cadence, service, saveroot,
-               configpath):
+"""
+Try / catch a connection loss during download - maybe while looping
+through year files?
+
+retry = true
+while (retry):
+    try:
+        conn = FTP('blah')
+        conn.connect()
+        for item in list_of_items:
+            myfile = open('filename', 'w')
+            conn.retrbinary('stuff', myfile)   
+            ### do some parsing ###
+
+        retry = false
+
+    except IOError as e:
+        print "I/O error({0}): {1}".format(e.errno, e.strerror)
+        print "Retrying..."
+        retry = true
+"""
+
+def fetch_data(start_date, end_date, station, cadence, service, saveroot, configpath):
     """
-    Wrapper for the wrapper `fetch_station_data()`...
-    `fetch_station_data()` handles a single observatory, for a range of
-    dates. Here, simply accept a list of `station` codes, and pass each value
-    to `fetch_station_data()` with the remaining criteria kept constant.
-
-    Parameters
-    ---------
-    start_date:  datetime.date
-        earliest date at which data wanted.
-    end_date:  datetime.datetime
-        latest date at which data wanted.
-    station: list of string
-        IAGA-style station code e.g. 'ESK', 'NGK'
-    cadence: string
-        frequency of the data. 'minute' or 'hour',
-        changes the total data span
-    service: string
-        webservice to target, only  'WDC' for now
-        (future work will support 'INTERMAGNET')
-    saveroot: file path as string
-        root directory at which to save data.
-        multi-file downloads structured according to
-        contents of `configpath`
-    configpath: file path as string
-        location of the configuration file we want to read
-
-    Returns
-    ------
-    None
-
-    Side Effects (through `fetch_station_data()`)
-    ------------
-    Downloads data to the specified path.
-
-    Raises (through `fetch_station_data()`)
-    ------
-    ValueError if `cadence` is not something we can use
-        (currently only 'minute' or 'hour')
-
-    ConfigError if any of the required header values
-        are not options within the config file
-
-    InvalidRequest if we cannot make a sane request to `service` based
-        on data provided via function arguments or the `configpath`
-
-    InvalidResponse if the response is not the desired HTTP status code
-    """
-    [
-        fetch_station_data(start_date, end_date, station_, cadence, service,
-                           saveroot, configpath)
-        for station_ in station_list
-    ]
-
-
-def fetch_station_data(start_date, end_date, station, cadence, service,
-                       saveroot, configpath):
-    """
-    Ask webservice `service` for observatory data
+    Ask FTP `service` for observatory data
     and download it to folder `saveroot`.
     The data to be requested are defined by `start_date`, `end_date`,
     `station`, and `cadence`.
@@ -94,11 +55,11 @@ def fetch_station_data(start_date, end_date, station, cadence, service,
     station: string
         IAGA-style station code e.g. 'ESK', 'NGK'
     cadence: string
-        frequency of the data. 'minute' or 'hour',
+        frequency of the data
+        currently only 'hour'. 'minute' and 'second' will follow
         changes the total data span
     service: string
-        webservice to target, only  'WDC' for now
-        (future work will support 'INTERMAGNET')
+        FTP to target, only  'AUX_OBS' for now
     saveroot: file path as string
         root directory at which to save data.
         multi-file downloads structured according to
@@ -117,17 +78,18 @@ def fetch_station_data(start_date, end_date, station, cadence, service,
     Raises
     ------
     ValueError if `cadence` is not something we can use
-        (currently only 'minute' or 'hour')
+        (currently only 'hour', 'minute' and 'second' will follow)
 
     ConfigError if any of the required header values
         are not options within the config file
 
     InvalidRequest if we cannot make a sane request to `service` based
-        on data provided via function arguments or the `configpath`
-
-    InvalidResponse if the response is not the desired HTTP status code
+        on data provided via function arguments or the `configpath`.
     """
     config = ParsedConfigFile(configpath, service)
+    
+    
+    
     form_data = FormData(config)
     form_data.set_datasets(start_date, end_date, station, cadence, service)
     request = DataRequest()
@@ -136,59 +98,13 @@ def fetch_station_data(start_date, end_date, station, cadence, service,
     response = rq.post(
         request.url, data=request.form_data, headers=request.headers
     )
-    check_response(response.status_code, response.content)
-
-    # TODO: make this work with > 1 file without wrapper function
+    # TODO: make this work with > 1 file
     with zipfile.ZipFile(BytesIO(response.content)) as fzip:
         fzip.extractall(saveroot)
-
-
-def check_response(status_code, content):
-    """
-    Check if the server response is 'ok' (see `requests.codes`).
-    It's probably 'ok' 200, or 'internal_server_error' 500 because the server
-    is misbehaving.
-
-    Inputs
-    ------
-    status_code: http status code from post request response
-
-    content: stream content from post request response
-
-    Returns
-    -------
-    none
-
-    Raises
-    ------
-    ValueError: if http code is not 'ok' (200), or is 'ok' but empty
-        `filelist` returned
-
-    """
-    if status_code != rq.codes.ok:
-        mess = ("unexpected http response code from server: " +
-                "{}, '{}'")
-        mess = mess.format(status_code,
-                           rq.status_codes._codes[status_code][0])
-        raise ValueError(mess)
-
-    elif status_code == rq.codes.ok:
-        """An empty zipfile will still send back some bytes but can check if
-        the returned filelist is empty.
-        """
-        content = zipfile.ZipFile(BytesIO(content))
-        if not content.filelist:
-            mess = ("no valid files returned.\n" +
-                    "http response code is: {}, '{}'\n" +
-                    "data may not be available for date range " +
-                    "requested, or server is misbehaving.")
-            mess = mess.format(status_code,
-                               rq.status_codes._codes[status_code][0])
-            raise ValueError(mess)
-
-
+        
+        
 class ConfigError(Exception):
-    """Errors reading config files for consuming webservices"""
+    """Errors reading config files for consuming FTP"""
     pass
 
 
@@ -291,8 +207,7 @@ class DataRequest(object):
         if not self.url:
             mess += mess_base.format('url', 'read_url(config)')
         if not self.form_data:
-            mess += mess_base.format('form data',
-                                     'set_form_data(form_data_dict)')
+            mess += mess_base.format('form data', 'set_form_data(form_data_dict)')
         raise InvalidRequest(mess)
 
     def read_url(self, request_config):
@@ -369,8 +284,7 @@ class FormData(object):
 
     def __str__(self):
         """pretty (ish) printing)"""
-        strout = safe_format('{}:\n    {}', self.__class__.__name__,
-                             self._dict)
+        strout = safe_format('{}:\n    {}', self.__class__.__name__, self._dict)
         return strout
 
     def __repr__(self):
@@ -466,8 +380,8 @@ class FormData(object):
 
 class ParsedConfigFile(object):
     """
-    Read the configuration file for making requests to
-    the WDC  (and, in future INTERMAGNET) webservices.
+    Read the configuration file for connection to the
+    AUX_OBS (and other, future) FTP.
 
     Usage
     -----
@@ -480,7 +394,7 @@ class ParsedConfigFile(object):
         location of the configuration file we want to read
     target_service: string
         Which we service are we targeting?
-        Currently only 'WDC'.
+        Currently only 'AUX_OBS'.
 
     Attributes
     ---------
@@ -490,10 +404,10 @@ class ParsedConfigFile(object):
         Typically contains filetype e.g. 'text/x-iaga2002'
     service: string
         the geomag webservice to which to make the request,
-        e.g. 'WDC' or (in future) 'INTERMAGNET'
+        e.g. 'AUX_OBS'
     headers: `dict` of strings
-        header values for the HTTP the request,
-        e.g. {'Accept-Encoding': 'gzip'}
+        access credentials for FTP,
+        e.g. {'User': 'anonymous'}
     url: string
         The URL to which we will send the request
 
@@ -502,7 +416,6 @@ class ParsedConfigFile(object):
     ConfigError if any of the required header values
     are not options within the config file
     """
-    headers_need = ['Accept', 'Accept-Encoding', 'Content-Type']
     urlbits_need = ['Hostname', 'Route']
 
     def __init__(self, config_file, target_service):
@@ -512,7 +425,7 @@ class ParsedConfigFile(object):
         self._config.read(self._filename)
         self._check_service(target_service)
         self.service = target_service
-        self.headers = self.extract_headers()
+        self.headers = self.extract_creds()
         self.url = self.extract_url()
         self.dataformat = self.form_data__format()
 
@@ -525,23 +438,23 @@ class ParsedConfigFile(object):
         )
         return mess
 
-    def extract_headers(self):
+    def extract_creds(self):
         """
-        Get the request headers from the ConfigurationParser `config`.
+        Get the access credentials from the ConfigurationParser `config`.
         `service` is assumed to be a section in the `config`
 
         Returns
         -------
-        `dict` of headers for the request
+        `dict` of access credentials
 
         Raises
         ------
-        ConfigError if any of the required header values
+        ConfigError if any of the required values
         are not options within the config file
         """
         try:
             heads = {
-                k: self._config.get(self.service, k) for k in self.headers_need
+                k: self._config.get(self.service, k) for k in self.creds_need
             }
         except NoOptionError as err:
             mess = (
@@ -553,7 +466,7 @@ class ParsedConfigFile(object):
             )
             formatted_mess = safe_format(
                 mess,
-                self.headers_need,
+                self.creds_need,
                 self.service,
                 list(self._config[self.service].keys())
             )
@@ -647,8 +560,8 @@ class ParsedConfigFile(object):
         Parameters
         ----------
         service: string
-            webservice to target, either 'WDC' (or,
-            in future 'INTERMAGNET')
+            webservice to target, either 'AUX_OBS' (or,
+            in future '?')
         """
         if service not in self._config.sections():
             mess = (
