@@ -11,6 +11,8 @@ from lib.consume_webservices import ParsedConfigFile, ConfigError
 # these small Mock classes are OK weird
 # pylint: disable=missing-docstring, no-self-use
 THE_SERVICE = 'ABC'
+
+
 class MockCfgParser(object):
     """
     fake just enough of the bits from
@@ -31,16 +33,21 @@ class MockCfgParser(object):
         'FileFormat': 'beep',
         '_format_template': '{}-boop'
     }
+
     def __init__(self):
         self.data = {**self.header_bits,
                      **self.url_bits,
                      **self.for_form_bits}
+
     def __getitem__(self, _):
         return self.data
+
     def read(self, _):
         return None
+
     def sections(self):
         return [THE_SERVICE]
+
     def get(self, _, key):
         try:
             return self.data[key]
@@ -48,6 +55,7 @@ class MockCfgParser(object):
             raise configparser.NoOptionError(key, THE_SERVICE)
 
 # pylint: enable=missing-docstring, no-self-use
+
 
 def test_construction(monkeypatch):
     """can we make a new instance of a ParsedConfigFile?"""

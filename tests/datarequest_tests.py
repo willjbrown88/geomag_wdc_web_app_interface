@@ -2,20 +2,23 @@
 import pytest
 import requests
 
-from lib.consume_webservices import DataRequest, InvalidRequest
+from lib.consume_webservices import DataRequest, InvalidRequest, check_response
 
 
 MOCK_FORMAT = 'wibble'
 MOCK_URL = 'https://www.example.com'
 MOCK_HEADERS = {'mock': 'header'}
 
+
 # small Mock classes can be weird
 # pylint: disable=missing-docstring, too-few-public-methods, no-self-use
 class MockConfig(object):
     url = MOCK_URL
     headers = MOCK_HEADERS
+
     def form_data__format(self):
         return MOCK_FORMAT
+
 
 # requests internals make linting unhappy
 # pylint: disable=no-member
@@ -41,8 +44,8 @@ class SpyRequests(object):
     def reset(cls):
         cls.post_call_count = 0
         cls.post_called_with = 'not a request'
-
 # pylint: enable=no-member, missing-docstring, too-few-public-methods, no-self-use
+
 
 def test_construction_empty():
     """
@@ -70,6 +73,7 @@ def test_sending_request_happy_path(monkeypatch):
     req.send()
     assert SpyRequests.post_call_count == 1
     print(SpyRequests.post_called_with)
+
 
 #  long test names are OK
 def test_cannot_send_until_all_parts_populated(monkeypatch):  # pylint: disable=invalid-name
@@ -120,7 +124,6 @@ def test_cannot_send_until_all_parts_populated(monkeypatch):  # pylint: disable=
     assert resp.status_code == MockResponse.status_code
 
 
-
 def test_sending_request_404_response_raises(monkeypatch):    # pylint: disable=invalid-name
     """
     if we've built a request,
@@ -139,7 +142,7 @@ def test_sending_request_404_response_raises(monkeypatch):    # pylint: disable=
     class Mock404Responder(object):
         def post(**kwargs):
             return Mock404()
- # pylint: enable=no-member, missing-docstring, too-few-public-methods, no-method-argument
+# pylint: enable=no-member, missing-docstring, too-few-public-methods, no-method-argument
 
     monkeypatch.setattr('lib.consume_webservices.rq', Mock404Responder)
     req = DataRequest()
@@ -147,6 +150,22 @@ def test_sending_request_404_response_raises(monkeypatch):    # pylint: disable=
     req.set_form_data({'some': 'data'})
     with pytest.raises(requests.exceptions.HTTPError):
         req.send()
+
+
+def test_check_response_raises():    # pylint: disable=invalid-name
+    """
+    check we get the expected failures when a response isn't 'ok'
+    """
+    with pytest.raises(ValueError) as error:
+        check_response(requests.codes.internal_server_error, '')
+    assert '500' in error.value.args[0]
+
+    # example bytes for empty zip file return in response.content
+    empty_zip_bytes = b'PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+
+    with pytest.raises(ValueError) as error:
+        check_response(requests.codes.ok, empty_zip_bytes)
+    assert 'no valid files returned' in error.value.args[0]
 
 
 def test_construction_valid_from_args():  # pylint: disable=invalid-name
