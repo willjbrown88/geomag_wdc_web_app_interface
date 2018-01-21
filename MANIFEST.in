@@ -1,2 +1,0 @@
-# To include static `.ini` config files:
-recursive-include *.ini

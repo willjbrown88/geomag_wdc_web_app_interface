@@ -19,7 +19,7 @@ from lib.sandboxed_format import safe_format
 
 
 def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot,
-               configpath='consume_rest.ini'):
+               configpath=None):
     """
     Wrapper for the wrapper `fetch_station_data()`...
     `fetch_station_data()` handles a single observatory, for a range of
@@ -80,7 +80,7 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
 
 
 def fetch_station_data(*, start_date, end_date, station, cadence, service,
-                       saveroot, configpath='consume_rest.ini'):
+                       saveroot, configpath=None):
     """
     Ask webservice `service` for observatory data
     and download it to folder `saveroot`.
@@ -131,6 +131,10 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
 
     InvalidResponse if the response is not the desired HTTP status code
     """
+    
+    if configpath is None:
+        configpath = os.join(__file__, 'lib/consume_rest.ini')
+    
     config = ParsedConfigFile(configpath, service)
     form_data = FormData(config)
     form_data.set_datasets(start_date, end_date, station, cadence, service)
