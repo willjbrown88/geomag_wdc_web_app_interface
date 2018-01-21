@@ -69,8 +69,9 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
     InvalidResponse if the response is not the desired HTTP status code
     """
     [
-        fetch_station_data(start_date, end_date, station_, cadence, service,
-                           saveroot, configpath)
+        fetch_station_data(start_date=start_date, end_date=end_date, 
+                           station=station_, cadence=cadence, servce=service,
+                           saveroot=saveroot, configpath=configpath)
         for station_ in station_list
     ]
 
