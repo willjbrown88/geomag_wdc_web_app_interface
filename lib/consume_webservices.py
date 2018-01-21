@@ -18,8 +18,8 @@ from six import BytesIO
 from lib.sandboxed_format import safe_format
 
 
-def fetch_data(start_date, end_date, station_list, cadence, service, saveroot,
-               configpath):
+def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot,
+               configpath='consume_rest.ini'):
     """
     Wrapper for the wrapper `fetch_station_data()`...
     `fetch_station_data()` handles a single observatory, for a range of
@@ -75,8 +75,8 @@ def fetch_data(start_date, end_date, station_list, cadence, service, saveroot,
     ]
 
 
-def fetch_station_data(start_date, end_date, station, cadence, service,
-                       saveroot, configpath):
+def fetch_station_data(*, start_date, end_date, station, cadence, service,
+                       saveroot, configpath='consume_rest.ini'):
     """
     Ask webservice `service` for observatory data
     and download it to folder `saveroot`.
