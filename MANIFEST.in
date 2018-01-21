@@ -1,0 +1,2 @@
+# To include static `.ini` config files:
+include *.ini
