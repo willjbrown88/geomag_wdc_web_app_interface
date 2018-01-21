@@ -70,7 +70,7 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
     """
     [
         fetch_station_data(start_date=start_date, end_date=end_date, 
-                           station=station_, cadence=cadence, servce=service,
+                           station=station_, cadence=cadence, service=service,
                            saveroot=saveroot, configpath=configpath)
         for station_ in station_list
     ]
