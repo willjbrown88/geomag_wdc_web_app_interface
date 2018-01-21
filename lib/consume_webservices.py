@@ -137,14 +137,9 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
     InvalidResponse if the response is not the desired HTTP status code
     """
     
-    print(configpath)
-    
     if configpath is None:
         configpath = os.path.join(os.path.dirname(__file__),
                                   'consume_rest.ini')
-    
-    print(configpath)
-    print(start_date, end_date, station, cadence, service, saveroot)
     
     config = ParsedConfigFile(configpath, service)
     form_data = FormData(config)
