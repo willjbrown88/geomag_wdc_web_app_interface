@@ -11,6 +11,7 @@ the download file structure.
 from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
 import zipfile
+import os
 
 import requests as rq
 from six import BytesIO
@@ -32,8 +33,9 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
         earliest date at which data wanted.
     end_date:  datetime.datetime
         latest date at which data wanted.
-    station: list of string
-        IAGA-style station code e.g. 'ESK', 'NGK'
+    station: string, list of string
+        IAGA-style station code e.g. 'ESK', 'NGK' or a list of such e.g.
+        ['ESK, 'NGK']
     cadence: string
         frequency of the data. 'minute' or 'hour',
         changes the total data span
@@ -45,7 +47,8 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
         multi-file downloads structured according to
         contents of `configpath`
     configpath: file path as string
-        location of the configuration file we want to read
+        location of the configuration file we want to read, by default
+        this will be the version included in the package install
 
     Returns
     ------
@@ -69,7 +72,8 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
     InvalidResponse if the response is not the desired HTTP status code
     """
     
-    print(configpath)
+    if isinstance(station_list, str):
+        station_list = station_list.split()
     
     [
         fetch_station_data(start_date=start_date, end_date=end_date, 
@@ -108,7 +112,8 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
         multi-file downloads structured according to
         contents of `configpath`
     configpath: file path as string
-        location of the configuration file we want to read
+        location of the configuration file we want to read, by default
+        this will be the version included in the package install
 
     Returns
     ------
@@ -132,8 +137,14 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
     InvalidResponse if the response is not the desired HTTP status code
     """
     
+    print(configpath)
+    
     if configpath is None:
-        configpath = os.join(__file__, 'lib/consume_rest.ini')
+        configpath = os.path.join(os.path.dirname(__file__),
+                                  'consume_rest.ini')
+    
+    print(configpath)
+    print(start_date, end_date, station, cadence, service, saveroot)
     
     config = ParsedConfigFile(configpath, service)
     form_data = FormData(config)
