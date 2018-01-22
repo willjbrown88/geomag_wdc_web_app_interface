@@ -10,6 +10,7 @@ Main function for getting data is `consume_webservices.fetch_data`.
 
 ## Example usage:
 ```python
+from datetime import date
 from lib import consume_webservices as cws
 
 cadence = 'hour'
