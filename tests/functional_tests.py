@@ -190,9 +190,9 @@ def test_fetch_station_data_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: di
     assert not os.path.isfile(funcfile)
     # with wrapper function
     cws.fetch_station_data(
-        start_date, end_date,
-        station, cadence,
-        service, funcdir, configpath
+        start_date=start_date, end_date=end_date,
+        station=station, cadence=cadence,
+        service=service, saveroot=funcdir, configpath=configpath
     )
     assert os.path.isfile(funcfile)
     assert_all_lines_same(funcfile, manualfile)
@@ -247,9 +247,9 @@ def test_fetch_data_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: disable=in
         assert not os.path.isfile(filepath_)
     # with wrapper function
     cws.fetch_data(
-        start_date, end_date,
-        stations, cadence,
-        service, funcdir, configpath
+        start_date=start_date, end_date=end_date,
+        station_list=stations, cadence=cadence,
+        service=service, saveroot=funcdir, configpath=configpath
     )
     for filepath_ in funcfile:
         assert os.path.isfile(filepath_)
