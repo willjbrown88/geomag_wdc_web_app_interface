@@ -7,9 +7,18 @@ dev_requirements = [
     i.strip() for i in open("requirements_dev.txt").readlines()
 ]
 setup(
-    name="geomag-webapp-interface",
-    version="1.0.0",
+    name="geomag-webapp-interface",,
+    version="0.1.0",
     description="Retrieve geomagnetic observatory data via WDC and INTERMAGNET web services",
+    author="L. Billingham",
+    maintainer="W. Brown",
+    maintainer_email="wb@bgs.ac.uk",
+    license="MIT",
+    keywords="geomagnetism geomagnetic observatory data wdc intermagnet",
+    url="https://github.com/willjbrown88/geomag_wdc_web_app_interface",
+    
+    python_requires=">=3.4",
+    
     packages=find_packages(),
     include_package_data=True,
     package_data={'': ["*.ini"]},
