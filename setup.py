@@ -8,8 +8,8 @@ dev_requirements = [
 ]
 setup(
     name="geomag-webapp-interface",
-    version="0.1.0",
-    description="retrieve geomagnetic observatory data via WDC and INTERMAGNET web services",
+    version="1.0.0",
+    description="Retrieve geomagnetic observatory data via WDC and INTERMAGNET web services",
     packages=find_packages(),
     include_package_data=True,
     package_data={'': ["*.ini"]},

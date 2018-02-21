@@ -12,7 +12,3 @@
 .cache
 htmlcov
 .coverage
-
-
-# editor cruft
-.ropeproject
