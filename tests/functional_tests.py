@@ -50,7 +50,7 @@ def assert_all_lines_same(path_1, path_2):
 def test_getting_wdc_format_hour_data_from_wdc(tmpdir):  # pylint: disable=invalid-name
     """
     smoke test WRT 'known good' data
-    - downlad hourly averages of Niemeg from WDC
+    - download hourly averages of Niemegk from WDC
     - in wdc format
     - put them in a temporary folder
     - compare them with 'known-good' examples
