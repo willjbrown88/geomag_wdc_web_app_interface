@@ -22,6 +22,8 @@ help:
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
 	@echo "develop - installs package and dependencies locally and links to site-packages, local file changes get propagated to app without reinsall"
 	@echo "install - install the package to the active Python's site-packages; may install a CLI app too"
+	@echo "uninstall - uninstall the package by name, with pip."
+	@echo "all - cleans, installs, runs tests and builds docs."
 
 clean: clean-build clean-pyc clean-test
 
@@ -47,14 +49,21 @@ lint:
 	pylint lib tests
 
 test:
-	cd tests; pytest
+	pytest
 
 coverage:
 	pytest --cov-report html --cov lib tests
 	$(BROWSER) htmlcov/index.html
 
 docs:
-	@echo "yeah, there should be something here, you're right..."
+	rm -f docs/lib*.rst
+	rm -f docs/lib/lib.rst
+	rm -f docs/lib/modules.rst
+	sphinx-apidoc -o docs/lib/ lib
+	ln -s docs/lib/lib*.rst docs/
+	$(MAKE) -C docs/ clean
+	$(MAKE) -C docs/ html
+	$(BROWSER) docs/_build/html/index.html
 
 install: clean
 	pip install .
@@ -63,4 +72,6 @@ develop: clean
 	pip install -e .[$@]
 
 uninstall:
-	@echo "find the local python environment's 'site-packages' and bin' directories and delete anything with 'dataselect' in it"
+	pip uninstall geomag-wdc-web-app-interface
+
+all: clean install test docs
