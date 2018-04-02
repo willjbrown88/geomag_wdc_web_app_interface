@@ -18,10 +18,11 @@ of Grace Cox in `MagPySV` (see [Grace's GitHub repo](https://github.com/gracecox
 which will install this project as a dependecy to fetch WDC data on demand.
 
 ## Installation
-The package can be installed from the Python Package Index PyPI with
+The latest official release of the package can be installed from the Python Package
+Index PyPI with
 `pip install geomag-wdc-web-app-interface`.
 
-The package can also be obtained directly from git with:
+The latest working version of the package can also be installed directly from git with:
 `pip install git+https://github.com/willjbrown88/geomag_wdc_web_app_interface.git`
 
 ## Usage
