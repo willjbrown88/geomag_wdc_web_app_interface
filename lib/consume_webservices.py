@@ -229,7 +229,7 @@ class DataRequest(object):
     - instantiating a 'blank' object and use the `my_req.set_*(config)` methods
       to populate all the required parts from a parse config file
 
-    Attributes
+	Attributes
     ----------
     can_send: bool
         Do we contain enough data that we can send a sensible request?

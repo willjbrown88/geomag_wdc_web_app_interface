@@ -12,20 +12,21 @@ export BROWSER_PYSCRIPT
 BROWSER := python -c "$$BROWSER_PYSCRIPT"
 
 help:
-	@echo "clean - remove all build, test, coverage and Python artifacts"
+	@echo "clean - remove all build, test, coverage, documentation, and Python artifacts"
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "clean-test - remove test and coverage artifacts"
-	@echo "lint - check style with flake8"
+	@echo "clean-docs - remove documentation artifacts"
+	@echo "lint - check style with flake8 and pylint"
 	@echo "test - run tests quickly with the default Python"
 	@echo "coverage - check code coverage quickly with the default Python"
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
 	@echo "develop - installs package and dependencies locally and links to site-packages, local file changes get propagated to app without reinsall"
 	@echo "install - install the package to the active Python's site-packages; may install a CLI app too"
-	@echo "uninstall - uninstall the package by name, with pip."
+	@echo "uninstall - uninstall the package from the active environment, by name, with pip."
 	@echo "all - cleans, installs, runs tests and builds docs."
 
-clean: clean-build clean-pyc clean-test
+clean: clean-build clean-pyc clean-test clean-docs
 
 clean-build:
 	rm -fr build/
@@ -44,6 +45,11 @@ clean-test:
 	rm -f .coverage
 	rm -fr htmlcov/
 
+clean-docs:
+	rm -f docs/lib/lib.rst
+	rm -f docs/lib/modules.rst
+	$(MAKE) -C docs/ clean
+
 lint:
 	flake8 lib tests || true  # prevent terminate on fail
 	pylint lib tests
@@ -55,13 +61,8 @@ coverage:
 	pytest --cov-report html --cov lib tests
 	$(BROWSER) htmlcov/index.html
 
-docs:
-	rm -f docs/lib*.rst
-	rm -f docs/lib/lib.rst
-	rm -f docs/lib/modules.rst
+docs: clean-docs
 	sphinx-apidoc -o docs/lib/ lib
-	ln -s docs/lib/lib*.rst docs/
-	$(MAKE) -C docs/ clean
 	$(MAKE) -C docs/ html
 	$(BROWSER) docs/.build/html/index.html
 
