@@ -8,7 +8,7 @@ dev_requirements = [
 ]
 setup(
     name="geomag-wdc-web-app-interface",
-    version="1.0.1",
+    version="1.0.2",
     description="Retrieve geomagnetic observatory data via WDC and INTERMAGNET web services",
     author="L. Billingham",
     maintainer="W. Brown",
