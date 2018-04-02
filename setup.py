@@ -8,7 +8,7 @@ dev_requirements = [
 ]
 setup(
     name="geomag-wdc-web-app-interface",
-    version="0.1.0",
+    version="1.0.1",
     description="Retrieve geomagnetic observatory data via WDC and INTERMAGNET web services",
     author="L. Billingham",
     maintainer="W. Brown",
@@ -16,6 +16,7 @@ setup(
     license="MIT",
     keywords=["geomagnetism", "geomagnetic observatory data", "wdc", "intermagnet"],
     url="https://github.com/willjbrown88/geomag_wdc_web_app_interface",
+    download_url="https://github.com/willjbrown88/geomag_wdc_web_app_interface/archive/1.0.1.tar.gz",
     
     python_requires=">=3.4",
     
