@@ -63,7 +63,7 @@ docs:
 	ln -s docs/lib/lib*.rst docs/
 	$(MAKE) -C docs/ clean
 	$(MAKE) -C docs/ html
-	$(BROWSER) docs/_build/html/index.html
+	$(BROWSER) docs/.build/html/index.html
 
 install: clean
 	pip install .

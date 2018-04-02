@@ -10,6 +10,10 @@ Welcome to geomag-wdc-web-app-interface's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   README
+   LICENSE
+   lib
+   tests
 
 
 Indices and tables
