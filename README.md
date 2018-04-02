@@ -1,5 +1,6 @@
 # geomag_wdc_web_app_interface
-|build-status| |coverage| |license|
+[![Build Status](https://travis-ci.org/willjbrown88/geomag_wdc_web_app_interface.svg?branch=master)](https://travis-ci.org/willjbrown88/geomag_wdc_web_app_interface)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 This Python package allows a users to programmatically download data from the
 [British Geological Survey (BGS) Data Portal to the World Data Centre (WDC)

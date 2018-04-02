@@ -1,7 +1,9 @@
+sudo: false
 language: python
 python:
     - '3.5'
 install:
-    - make travis
+    - make travis-install
 script:
     - make test
+    - make travis-docs
