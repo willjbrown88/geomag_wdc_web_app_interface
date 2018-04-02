@@ -76,3 +76,6 @@ uninstall:
 	pip uninstall geomag-wdc-web-app-interface
 
 all: install test docs
+
+travis:
+	pip install .
