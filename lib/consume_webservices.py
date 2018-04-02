@@ -1,4 +1,6 @@
 """
+consume_webservices module
+
 Consume the BGS-WDC (and, in future, INTERMAGNET) webservices.
 
 main public function to call is `fetch_data(...)`.
@@ -7,6 +9,8 @@ Other functions and classes are for modularity/testability
 Lots of the server interaction is controlled
 by the `.ini` configuration file, as is
 the download file structure.
+
+@author: L Billingham; W. Brown
 """
 from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
@@ -28,7 +32,7 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
     to `fetch_station_data()` with the remaining criteria kept constant.
 
     Parameters
-    ---------
+    ----------
     start_date:  datetime.date
         earliest date at which data wanted.
     end_date:  datetime.datetime
@@ -51,7 +55,7 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
         this will be the version included in the package install
 
     Returns
-    ------
+    -------
     None
 
     Side Effects (through `fetch_station_data()`)
@@ -94,7 +98,7 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
     from the configuration file at `configpath`
 
     Parameters
-    ---------
+    ----------
     start_date:  datetime.date
         earliest date at which data wanted.
     end_date:  datetime.datetime
@@ -116,7 +120,7 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
         this will be the version included in the package install
 
     Returns
-    ------
+    -------
     None
 
     Side Effects
@@ -315,7 +319,7 @@ class DataRequest(object):
         the ParsedConfigFile `config`
 
         Parameters
-        ---------
+        ----------
         request_config: ParsedConfigFile
             thing that knows how to read `urls` from
             configuration files
@@ -341,7 +345,7 @@ class DataRequest(object):
         the ParsedConfigFile `config`
 
         Parameters
-        ---------
+        ----------
         request_config: ParsedConfigFile
             thing that knows how to read from
             configuration files
@@ -372,7 +376,7 @@ class FormData(object):
     def __init__(self, request_config):
         """
         Parameters
-        ---------
+        ----------
         request_config: ParsedConfigFile
             thing that knows how to read  the expected return data
             format from configuration files
