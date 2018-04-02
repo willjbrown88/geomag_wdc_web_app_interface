@@ -10,7 +10,6 @@ Welcome to geomag-wdc-web-app-interface's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
 Indices and tables
 ==================
 

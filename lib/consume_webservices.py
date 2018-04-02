@@ -58,11 +58,11 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
     -------
     None
 
-    Side Effects (through `fetch_station_data()`)
-    ------------
+    Notes
+    -----
     Downloads data to the specified path.
 
-    Raises (through `fetch_station_data()`)
+    Raises
     ------
     ValueError if `cadence` is not something we can use
         (currently only 'minute' or 'hour')
@@ -123,8 +123,8 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
     -------
     None
 
-    Side Effects
-    ------------
+    Notes
+    -----
     Downloads data to the specified path.
 
     Raises
@@ -167,8 +167,8 @@ def check_response(status_code, content):
     It's probably 'ok' 200, or 'internal_server_error' 500 because the server
     is misbehaving.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     status_code: http status code from post request response
 
     content: stream content from post request response
@@ -223,28 +223,29 @@ class DataRequest(object):
     The HTTP POST request for getting
     the geomag data we want
 
-    Can set attributes by either:
-    - passing parameters at instantiation
+    Can set attributes by either
+		* passing parameters at instantiation
+
     or
-    - instantiating a 'blank' object and use the `my_req.set_*(config)` methods
-      to populate all the required parts from a parse config file
+		* instantiating a 'blank' object and use the `my_req.set_*(config)` methods
+		to populate all the required parts from a parse config file
 
 	Attributes
-    ----------
+	----------
     can_send: bool
-        Do we contain enough data that we can send a sensible request?
-        N.B. does not do fancy validation.
+		Do we contain enough data that we can send a sensible request?
+		N.B. does not do fancy validation.
     form_data: dict
-        Dictionary of POST request form data
-        e.g. {'format': 'text/x-wdc',
-              'datasets': '/wdc/datasets/minute/aaa200509'}
+		Dictionary of POST request form data
+		e.g. {'format': 'text/x-wdc',
+		'datasets': '/wdc/datasets/minute/aaa200509'}
     headers: dict
-        Dictionary of request headers
-        e.g. {'Accept': 'text/html,application/xml',
-              'Content-Type': 'application/x-www-form-urlencoded'}
+		Dictionary of request headers
+		e.g. {'Accept': 'text/html,application/xml',
+		'Content-Type': 'application/x-www-form-urlencoded'}
     url: string
-        Full url to which we will make the request
-        e.g. http://app.geomag.bgs.ac.uk/wdc/datasets/download
+		Full url to which we will make the request
+		e.g. http://app.geomag.bgs.ac.uk/wdc/datasets/download
 
     """
     def __init__(self, url='', headers=None, form_data=None):
@@ -257,11 +258,12 @@ class DataRequest(object):
         headers: dict or (default) `None`
             Dictionary of request headers
             e.g. {'Accept': 'text/html,application/xml',
-                'Content-Type': 'application/x-www-form-urlencoded'}
+            'Content-Type': 'application/x-www-form-urlencoded'}
         form_data: dict or (default) `None`
             Dictionary of POST request form data
             e.g. {'format': 'text/x-wdc',
-                'datasets': '/wdc/datasets/minute/aaa200509'}
+            'datasets': '/wdc/datasets/minute/aaa200509'}
+
         """
         self.url = url
         if headers is None:
@@ -284,8 +286,8 @@ class DataRequest(object):
         """
         Send a populated DataRequest
 
-        Side Effects
-        ------------
+        Notes
+        -----
         Makes an HTTP request over the network
 
         Raises
@@ -332,7 +334,7 @@ class DataRequest(object):
         the ParsedConfigFile `config`
 
         Parameters
-        ---------
+        ----------
         request_config: ParsedConfigFile
             thing that knows how to read from
             configuration files
@@ -363,7 +365,7 @@ class DataRequest(object):
         form_data_dict: dict
             something like
             {'datasets': '/route_url/aaa1978',
-             'format':text/x-wdc, }
+            'format':text/x-wdc}
         """
         self.form_data = form_data_dict
 
@@ -487,7 +489,7 @@ class ParsedConfigFile(object):
     Read the configuration file for making requests to
     the WDC  (and, in future INTERMAGNET) webservices.
 
-    Usage
+    Notes
     -----
     File is read on instantiation, but methods to
     extract parts needed are public `extract_url` etc.
@@ -501,7 +503,7 @@ class ParsedConfigFile(object):
         Currently only 'WDC'.
 
     Attributes
-    ---------
+    ----------
     dataformat: string
         format we want observatory data to come back in.
         Becomes part of the FormData.
