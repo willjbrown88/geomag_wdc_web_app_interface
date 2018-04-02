@@ -2,7 +2,6 @@
 
 from setuptools import setup, find_packages
 
-]
 setup(
     name="geomag-wdc-web-app-interface",
     version="1.0.4",
