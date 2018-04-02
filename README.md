@@ -61,6 +61,25 @@ Expansion of the current package to access other ground observatory data service
 such as INTERMAGNET and the AUX_OBS_ product of the ESA Swarm mission, are currently
 being developed. Any contributions or suggestion are welcome.
 
+### Source code install
+You can obtain the source code from github with e.g.:
+`git clone https://github.com/willjbrown88/geomag_wdc_web_app_interface.git ./my_source_dir/`
+The code can then be built, documented and tested in various ways with the make `make` command,
+when in the source code directory.
+Type `make help` in the source directory to see the available options, e.g.
+
+  * To install the package from source use:
+    `make install`
+
+  * To install in editable, development mode use:
+    `make develop`
+
+  * To run the unit tests:
+    `make test`
+
+  * To build the html documentation:
+    `make docs`
+
 ## Reference
 A manuscript describing [MagPySV](https://github.com/gracecox/MagPySV) and the
 intergated functionality of this package is currently in preparation.

@@ -4,11 +4,17 @@
 *.min
 *.wdc
 
-# python binary products
+# python binary products:
 *.pyc
 *.egg-info
 
-# pytest and coverage
+# pytest and coverage:
 .cache
 htmlcov
 .coverage
+
+# doc builds:
+doc/.build/*
+
+# distribution builds
+dist
