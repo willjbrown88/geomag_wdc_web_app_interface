@@ -1,14 +1,32 @@
-[![Build Status](https://travis-ci.org/lbillingham/geomag_wdc_web_app_interface.svg?branch=master)](https://travis-ci.org/lbillingham/geomag_wdc_web_app_interface)
-
 # geomag_wdc_web_app_interface
-programmatically get data from http://wdc.bgs.ac.uk/dataportal/
-installable like: `pip install git+https://github.com/willjbrown88/geomag_wdc_web_app_interface.git`
+|build-status| |coverage| |license|
 
-Very much a work in progress, building towards version 1.0 release. Currently master branch will build and run as intended for a user.
+This Python package allows a users to programmatically download data from the
+[British Geological Survey (BGS) Data Portal to the World Data Centre (WDC)
+for geomagnetism, Edinburgh](http://wdc.bgs.ac.uk/dataportal/).
 
-Main function for getting data is `consume_webservices.fetch_data`.
+Currently hour and minute cadence WDC files from geomagnetic observatories
+can be downloaded in this manner.
 
-## Example usage:
+This code was originally developed by Laurence Billingham, and is now maintained
+by William Brown.
+
+### MagPySV
+This package was designed in part to support observatory secular variation data processing work
+of Grace Cox in `MagPySV` (see [Grace's GitHub repo](https://github.com/gracecox/MagPySV/)),
+which will install this project as a dependecy to fetch WDC data on demand.
+
+## Installation
+The package can be installed from the Python Package Index PyPI with
+`pip install geomag-wdc-web-app-interface`.
+
+The package can also be obtained directly from git with:
+`pip install git+https://github.com/willjbrown88/geomag_wdc_web_app_interface.git`
+
+## Usage
+The main function for getting data is `consume_webservices.fetch_data()`.
+
+### Example usage:
 ```python
 from datetime import date
 from lib import consume_webservices as cws
@@ -28,7 +46,22 @@ cws.fetch_data(
 See the docstring on `fetch_data` and the test in
 `tests/functional_tests.test_fetch_data_wdc_format_hour_data_from_wdc`
 for detailed useage.
-This will download all available hourly data housed in the WDC for Geomagnetism, Edinburgh, for dates between `start_date` and `end_date`, from 'ESK'(dalemuir) and 'LER'(wick) observatories, to the directory '/tmp/'.
+This will download all available hourly data housed in the WDC for Geomagnetism,
+Edinburgh, for dates between `start_date` and `end_date`, from 'ESK'(dalemuir) and
+'LER'(wick) observatories, to the directory '/tmp/'.
 
-## MagPySV
-Designed to support observatory secular variation data processing work of Grace Cox in `MagPySV` (see [Grace's GitHub repo](https://github.com/gracecox/MagPySV/)), which will install this project as a dependecy to fetch WDC data on demand.
+## Contributing
+This is a working project, with open source under an MIT license. You can report
+bugs, suggest changes, and contribute to this project via github at
+https://github.com/willjbrown88/geomag_wdc_web_app_interface.
+
+Expansion of the current package to access other ground observatory data services,
+such as INTERMAGNET and the AUX_OBS_ product of the ESA Swarm mission, are currently
+being developed. Any contributions or suggestion are welcome.
+
+## Reference
+A manuscript describing [MagPySV](https://github.com/gracecox/MagPySV) and the
+intergated functionality of this package is currently in preparation.
+
+While the project is open source, we ask that you abide by the included MIT license,
+and acknowledge the authors where due.

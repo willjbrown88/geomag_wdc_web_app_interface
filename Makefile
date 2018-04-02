@@ -75,4 +75,4 @@ develop: clean
 uninstall:
 	pip uninstall geomag-wdc-web-app-interface
 
-all: clean install test docs
+all: install test docs
