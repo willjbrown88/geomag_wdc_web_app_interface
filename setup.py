@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="geomag-wdc-web-app-interface",
-    version="1.0.4",
+    version="1.0.5",
     description="Retrieve geomagnetic observatory data via WDC and INTERMAGNET web services",
     author="L. Billingham",
     maintainer="W. Brown",
@@ -12,7 +12,7 @@ setup(
     license="MIT",
     keywords=["geomagnetism", "geomagnetic observatory data", "wdc", "intermagnet"],
     url="https://github.com/willjbrown88/geomag_wdc_web_app_interface",
-    download_url="https://github.com/willjbrown88/geomag_wdc_web_app_interface/archive/1.0.4.tar.gz",
+    download_url="https://github.com/willjbrown88/geomag_wdc_web_app_interface/archive/1.0.5.tar.gz",
     
     python_requires=">=3.4",
     
