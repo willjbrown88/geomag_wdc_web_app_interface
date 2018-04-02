@@ -6,4 +6,3 @@ install:
     - make travis-install
 script:
     - make test
-    - make travis-docs

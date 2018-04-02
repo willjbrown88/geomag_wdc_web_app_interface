@@ -26,7 +26,6 @@ help:
 	@echo "uninstall - uninstall the package from the active environment, by name, with pip."
 	@echo "all - cleans, installs, runs tests and builds docs."
 	@echo "travis-install - the automatic build for Travis CI"
-	@echo "travis-docs - the automatic doc build test for Travis CI"
 
 clean: clean-build clean-pyc clean-test clean-docs
 
@@ -81,6 +80,3 @@ all: install test docs
 
 travis-install:
 	pip install .
-
-travis-docs:
-	sphinx-apidoc -o docs/lib/ lib
