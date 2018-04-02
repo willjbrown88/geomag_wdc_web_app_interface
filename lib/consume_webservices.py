@@ -12,19 +12,17 @@ the download file structure.
 
 @author: L Billingham; W. Brown
 """
+import os
+import zipfile
 from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
-import zipfile
-import os
-
 import requests as rq
 from six import BytesIO
-
 from lib.sandboxed_format import safe_format
 
 
-def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot,
-               configpath=None):
+def fetch_data(*, start_date, end_date, station_list, cadence, service,
+               saveroot, configpath=None):
     """
     Wrapper for the wrapper `fetch_station_data()`...
     `fetch_station_data()` handles a single observatory, for a range of
@@ -75,12 +73,12 @@ def fetch_data(*, start_date, end_date, station_list, cadence, service, saveroot
 
     InvalidResponse if the response is not the desired HTTP status code
     """
-    
+
     if isinstance(station_list, str):
         station_list = station_list.split()
-    
+
     [
-        fetch_station_data(start_date=start_date, end_date=end_date, 
+        fetch_station_data(start_date=start_date, end_date=end_date,
                            station=station_, cadence=cadence, service=service,
                            saveroot=saveroot, configpath=configpath)
         for station_ in station_list
@@ -140,11 +138,11 @@ def fetch_station_data(*, start_date, end_date, station, cadence, service,
 
     InvalidResponse if the response is not the desired HTTP status code
     """
-    
+
     if configpath is None:
         configpath = os.path.join(os.path.dirname(__file__),
                                   'consume_rest.ini')
-    
+
     config = ParsedConfigFile(configpath, service)
     form_data = FormData(config)
     form_data.set_datasets(start_date, end_date, station, cadence, service)
@@ -224,28 +222,28 @@ class DataRequest(object):
     the geomag data we want
 
     Can set attributes by either
-		* passing parameters at instantiation
+        * passing parameters at instantiation
 
     or
-		* instantiating a 'blank' object and use the `my_req.set_*(config)` methods
-		to populate all the required parts from a parse config file
+        * instantiating a 'blank' object and use the `my_req.set_*(config)`
+        methods to populate all the required parts from a parse config file
 
-	Attributes
-	----------
+    Attributes
+    ----------
     can_send: bool
-		Do we contain enough data that we can send a sensible request?
-		N.B. does not do fancy validation.
+        Do we contain enough data that we can send a sensible request?
+        N.B. does not do fancy validation.
     form_data: dict
-		Dictionary of POST request form data
-		e.g. {'format': 'text/x-wdc',
-		'datasets': '/wdc/datasets/minute/aaa200509'}
+        Dictionary of POST request form data
+        e.g. {'format': 'text/x-wdc',
+        'datasets': '/wdc/datasets/minute/aaa200509'}
     headers: dict
-		Dictionary of request headers
-		e.g. {'Accept': 'text/html,application/xml',
-		'Content-Type': 'application/x-www-form-urlencoded'}
+        Dictionary of request headers
+        e.g. {'Accept': 'text/html,application/xml',
+        'Content-Type': 'application/x-www-form-urlencoded'}
     url: string
-		Full url to which we will make the request
-		e.g. http://app.geomag.bgs.ac.uk/wdc/datasets/download
+        Full url to which we will make the request
+        e.g. http://app.geomag.bgs.ac.uk/wdc/datasets/download
 
     """
     def __init__(self, url='', headers=None, form_data=None):
@@ -304,7 +302,8 @@ class DataRequest(object):
 
     def _error_with_message(self):
         """raise an error after building relevent error message"""
-        mess_base = 'Cannot send request: missing {}; set by calling `{}` method'
+        mess_base = ('Cannot send request: missing {}; '
+                     'set by calling `{}` method')
         mess = ''
         if not self.headers:
             mess += mess_base.format('headers', 'read_headers(config)')
