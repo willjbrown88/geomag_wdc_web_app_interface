@@ -14,7 +14,7 @@ htmlcov
 .coverage
 
 # doc builds:
-doc/.build/*
+docs/.build
 
 # distribution builds
 dist
