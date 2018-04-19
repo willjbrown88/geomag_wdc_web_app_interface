@@ -15,6 +15,7 @@ htmlcov
 
 # doc builds:
 docs/.build
+docs/*.rst
 
 # distribution builds
 dist
