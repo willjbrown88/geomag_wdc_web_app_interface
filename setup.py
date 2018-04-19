@@ -9,7 +9,7 @@ def readme(fname):
 
 setup(
     name="gmdata_webinterface",
-    version="1.0.5",
+    version="1.0.6",
 
     description="Retrieve geomagnetic observatory data via web services",
     long_description=readme("README.md"),
