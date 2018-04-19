@@ -21,7 +21,7 @@ setup(
     license="MIT",
 
     keywords=["geomagnetism", "geomagnetic observatory data", "wdc", "intermagnet"],
-    classifiers=["Programming Language :: Python:: 3"],
+    classifiers=["Programming Language :: Python :: 3"],
 
     url="https://github.com/willjbrown88/geomag_wdc_web_app_interface",
 
