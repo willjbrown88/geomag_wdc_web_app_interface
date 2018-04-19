@@ -1,9 +1,9 @@
 [run]
 omit =
     # omit anything in a .local directory anywhere
-    ./tests/*
+    ./gmdata_webinterface/tests/*
     # omit this single file
-    ./lib/sandboxed_format.py
+    ./gmdata_webinterface/sandboxed_format.py
 
 [report]
 fail_under = 91

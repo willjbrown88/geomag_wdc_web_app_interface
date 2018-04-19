@@ -1,9 +1,9 @@
-.. geomag-wdc-web-app-interface documentation master file, created by
+.. gmdata_webinterface documentation master file, created by
    sphinx-quickstart on Mon Apr  2 13:20:50 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to geomag-wdc-web-app-interface's documentation!
+Welcome to gmdata_webinterface's documentation!
 ========================================================
 
 .. toctree::

@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=.build
-set SPHINXPROJ=geomag-wdc-web-app-interface
+set SPHINXPROJ=gmdata_webinterface
 
 if "%1" == "" goto help
 

@@ -1,21 +1,31 @@
 """minimal package setup"""
 
+import os
 from setuptools import setup, find_packages
 
+# Allow us to read the README file
+def readme(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 setup(
-    name="geomag-wdc-web-app-interface",
+    name="gmdata_webinterface",
     version="1.0.5",
-    description="Retrieve geomagnetic observatory data via WDC and INTERMAGNET web services",
+
+    description="Retrieve geomagnetic observatory data via web services",
+    long_description=readme("README.md"),
+
     author="L. Billingham",
     maintainer="W. Brown",
     maintainer_email="wb@bgs.ac.uk",
+
     license="MIT",
+
     keywords=["geomagnetism", "geomagnetic observatory data", "wdc", "intermagnet"],
+    classifiers=["Programming Language :: Python:: 3"],
+
     url="https://github.com/willjbrown88/geomag_wdc_web_app_interface",
-    download_url="https://github.com/willjbrown88/geomag_wdc_web_app_interface/archive/1.0.5.tar.gz",
-    
+
     python_requires=">=3.4",
-    
     packages=find_packages(),
     include_package_data=True,
     package_data={"": ["*.ini"]},

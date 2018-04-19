@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# geomag-wdc-web-app-interface documentation build configuration file, created by
+# gmdata_webinterface documentation build configuration file, created by
 # sphinx-quickstart on Mon Apr  2 13:20:50 2018.
 #
 # This file is execfile()d with the current directory set to its
@@ -19,7 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../lib'))
+sys.path.insert(0, os.path.abspath('../gmdata_webinterface'))
 
 
 # -- General configuration ------------------------------------------------
@@ -55,7 +55,7 @@ source_suffix = ['.rst', '.md']
 master_doc = 'index'
 
 # General information about the project.
-project = 'geomag-wdc-web-app-interface'
+project = 'gmdata_webinterface'
 copyright = '2018, L. Billingham, W. Brown; BGS'
 author = 'L. Billingham, W. Brown; BGS'
 
@@ -109,7 +109,7 @@ html_static_path = ['.static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'geomag-wdc-web-app-interfacedoc'
+htmlhelp_basename = 'gmdata_webinterfacedoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -136,7 +136,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'geomag-wdc-web-app-interface.tex', 'geomag-wdc-web-app-interface Documentation',
+    (master_doc, 'gmdata_webinterface.tex', 'gmdata_webinterface Documentation',
      'L. Billingham, W. Brown; BGS', 'manual'),
 ]
 
@@ -146,7 +146,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'geomag-wdc-web-app-interface', 'geomag-wdc-web-app-interface Documentation',
+    (master_doc, 'gmdata_webinterface', 'gmdata_webinterface Documentation',
      [author], 1)
 ]
 
@@ -157,8 +157,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'geomag-wdc-web-app-interface', 'geomag-wdc-web-app-interface Documentation',
-     author, 'geomag-wdc-web-app-interface', 'Interface to WDC web app for geomagnetic data download.',
+    (master_doc, 'gmdata_webinterface', 'gmdata_webinterface Documentation',
+     author, 'gmdata_webinterface', 'Interface to WDC web app for geomagnetic data download.',
      'Geomagnetism'),
 ]
 

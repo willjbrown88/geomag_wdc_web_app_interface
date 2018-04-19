@@ -12,7 +12,7 @@ import pytest
 import requests as rq
 from six import BytesIO
 
-from lib import consume_webservices as cws
+from gmdata_webinterface import consume_webservices as cws
 
 DATAPATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),

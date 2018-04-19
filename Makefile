@@ -47,23 +47,23 @@ clean-test:
 	rm -fr htmlcov/
 
 clean-docs:
-	rm -f docs/lib/lib.rst
-	rm -f docs/lib/modules.rst
+	rm -f docs/gmdata_webinterface/gmdata_webinterface.rst
+	rm -f docs/gmdata_webinterface/modules.rst
 	$(MAKE) -C docs/ clean
 
 lint:
-	flake8 lib tests || true  # prevent terminate on fail
-	pylint lib tests
+	flake8 gmdata_webinterface gmdata_webinterface/tests || true  # prevent terminate on fail
+	pylint gmdata_webinterface gmdata_webinterface/tests
 
 test:
 	pytest
 
 coverage:
-	pytest --cov-report html --cov lib tests
+	pytest --cov-report html --cov gmdata_webinterface gmdata_webinterface/tests
 	$(BROWSER) htmlcov/index.html
 
 docs: clean-docs
-	sphinx-apidoc -o docs/lib/ lib
+	sphinx-apidoc -o docs/gmdata_webinterface/ gmdata_webinterface
 	$(MAKE) -C docs/ html
 	$(BROWSER) docs/.build/html/index.html
 
@@ -74,7 +74,7 @@ develop: clean
 	pip install -e .[$@]
 
 uninstall:
-	pip uninstall geomag-wdc-web-app-interface
+	pip uninstall gmdata_webinterface
 
 all: install test docs
 

@@ -2,7 +2,7 @@
 import pytest
 import requests
 
-from lib.consume_webservices import DataRequest, InvalidRequest, check_response
+from gmdata_webinterface.consume_webservices import DataRequest, InvalidRequest, check_response
 
 
 MOCK_FORMAT = 'wibble'
@@ -65,7 +65,7 @@ def test_sending_request_happy_path(monkeypatch):
     it?
     """
     SpyRequests.reset()
-    monkeypatch.setattr('lib.consume_webservices.rq', SpyRequests)
+    monkeypatch.setattr('gmdata_webinterface.consume_webservices.rq', SpyRequests)
     req = DataRequest()
     req.read_attributes(MockConfig())
     req.set_form_data({'format': MOCK_FORMAT, 'datasets': 'wibble'})
@@ -86,7 +86,7 @@ def test_cannot_send_until_all_parts_populated(monkeypatch):  # pylint: disable=
     that it cannot be sent until it is full
     """
     SpyRequests.reset()
-    monkeypatch.setattr('lib.consume_webservices.rq', SpyRequests)
+    monkeypatch.setattr('gmdata_webinterface.consume_webservices.rq', SpyRequests)
     config = MockConfig()
 
     assert SpyRequests.post_call_count == 0
@@ -144,7 +144,7 @@ def test_sending_request_404_response_raises(monkeypatch):    # pylint: disable=
             return Mock404()
 # pylint: enable=no-member, missing-docstring, too-few-public-methods, no-method-argument
 
-    monkeypatch.setattr('lib.consume_webservices.rq', Mock404Responder)
+    monkeypatch.setattr('gmdata_webinterface.consume_webservices.rq', Mock404Responder)
     req = DataRequest()
     req.read_attributes(MockConfig())
     req.set_form_data({'some': 'data'})

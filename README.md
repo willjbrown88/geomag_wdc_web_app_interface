@@ -1,4 +1,4 @@
-# geomag_wdc_web_app_interface
+# gmdata_webinterface
 [![Build Status](https://travis-ci.org/willjbrown88/geomag_wdc_web_app_interface.svg?branch=master)](https://travis-ci.org/willjbrown88/geomag_wdc_web_app_interface)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
@@ -20,7 +20,7 @@ which will install this project as a dependecy to fetch WDC data on demand.
 ## Installation
 The latest official release of the package can be installed from the Python Package
 Index PyPI with
-`pip install geomag-wdc-web-app-interface`.
+`pip install gmdata_webinterface`.
 
 The latest working version of the package can also be installed directly from git with:
 `pip install git+https://github.com/willjbrown88/geomag_wdc_web_app_interface.git`
@@ -31,7 +31,7 @@ The main function for getting data is `consume_webservices.fetch_data()`.
 ### Example usage:
 ```python
 from datetime import date
-from lib import consume_webservices as cws
+from gmdata_webinterface import consume_webservices as cws
 
 cadence = 'hour'
 stations = ['ESK', 'LER']
@@ -46,7 +46,7 @@ cws.fetch_data(
 )
 ```
 See the docstring on `fetch_data` and the test in
-`tests/functional_tests.test_fetch_data_wdc_format_hour_data_from_wdc`
+`gmdata_webinterface/tests/functional_tests.test_fetch_data_wdc_format_hour_data_from_wdc`
 for detailed useage.
 This will download all available hourly data housed in the WDC for Geomagnetism,
 Edinburgh, for dates between `start_date` and `end_date`, from 'ESK'(dalemuir) and

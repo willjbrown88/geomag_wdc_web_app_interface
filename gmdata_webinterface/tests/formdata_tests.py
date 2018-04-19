@@ -2,7 +2,7 @@
 from datetime import date
 import pytest
 
-from lib.consume_webservices import FormData
+from gmdata_webinterface.consume_webservices import FormData
 
 # tiny Mock helper classes are OK being weird
 # pylint: disable=too-few-public-methods, missing-docstring

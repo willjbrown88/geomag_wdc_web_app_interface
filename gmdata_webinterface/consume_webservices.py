@@ -18,7 +18,7 @@ from datetime import timedelta
 from configparser import ConfigParser, NoOptionError
 import requests as rq
 from six import BytesIO
-from lib.sandboxed_format import safe_format
+from gmdata_webinterface.sandboxed_format import safe_format
 
 
 def fetch_data(*, start_date, end_date, station_list, cadence, service,

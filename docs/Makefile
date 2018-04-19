@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = geomag-wdc-web-app-interface
+SPHINXPROJ    = gmdata_webinterface
 SOURCEDIR     = .
 BUILDDIR      = .build
 
