@@ -19,7 +19,7 @@ extra_files = package_files('gmdata_webinterface/tests/test_data')
 
 setup(
     name="gmdata_webinterface",
-    version="1.0.6",
+    version="1.0.7",
 
     description="Retrieve geomagnetic observatory data via web services",
     long_description=readme("README.md"),
