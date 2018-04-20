@@ -7,6 +7,16 @@ from setuptools import setup, find_packages
 def readme(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+# Recursively include test data in package_data
+def package_files(directory):
+    paths = []
+    for (path, directories, filenames) in os.walk(directory):
+        for filename in filenames:
+            paths.append(os.path.join("..", path, filename))
+    return paths
+
+extra_files = package_files('gmdata_webinterface/tests/test_data')
+
 setup(
     name="gmdata_webinterface",
     version="1.0.6",
@@ -28,7 +38,8 @@ setup(
     python_requires=">=3.4",
     packages=find_packages(),
     include_package_data=True,
-    package_data={"": ["*.ini"]},
+    package_data={"": ["*.ini"],
+                  "": extra_files},
     zip_safe=False,
     install_requires=["requests==2.12.4",
                       "setuptools==27.2.0",

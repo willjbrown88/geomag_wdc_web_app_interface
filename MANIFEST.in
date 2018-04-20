@@ -1,3 +1,5 @@
 include README.md
 include LICENSE.txt
 include gmdata_webinterface/*.ini
+include pytest.ini
+recursive-include gmdata_webinterface/tests/test_data *
