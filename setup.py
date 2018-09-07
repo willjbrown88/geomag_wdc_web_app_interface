@@ -19,7 +19,7 @@ extra_files = package_files('gmdata_webinterface/tests/test_data')
 
 setup(
     name="gmdata_webinterface",
-    version="1.0.7",
+    version="1.0.8",
 
     description="Retrieve geomagnetic observatory data via web services",
     long_description=readme("README.md"),
@@ -41,10 +41,10 @@ setup(
     package_data={"": ["*.ini"],
                   "": extra_files},
     zip_safe=False,
-    install_requires=["requests==2.12.4",
-                      "setuptools==27.2.0",
-                      "six==1.10.0",
-                      "sphinx==1.5.1"],
+    install_requires=["requests>=2.12.4, <3.0",
+                      "setuptools>=27.2.0",
+                      "six>=1.10.0, <2.0",
+                      "sphinx>=1.5.1, <2.0"],
     extras_require={"develop": ["ipython==5.1.0",
                                 "flake8==3.3.0",
                                 "pylint==1.6.4",

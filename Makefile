@@ -21,7 +21,7 @@ help:
 	@echo "test - run tests quickly with the default Python"
 	@echo "coverage - check code coverage quickly with the default Python"
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
-	@echo "develop - installs package and dependencies locally and links to site-packages, local file changes get propagated to app without reinsall"
+	@echo "develop - installs package and dependencies locally and links to site-packages, local file changes get propagated to app without reinstall"
 	@echo "install - install the package to the active Python's site-packages; may install a CLI app too"
 	@echo "uninstall - uninstall the package from the active environment, by name, with pip."
 	@echo "all - cleans, installs, runs tests and builds docs."
